@@ -18,12 +18,11 @@ fn main() {
     let reader = File::open("resources/smpl_cue.wav").expect("input wav to read correctly.");
     let wav = WavFile::read(reader).expect("wav to parse correctly");
 
-    let mut writer = File::create("output.wav").expect("output wav to create correctly.");
-    WavFile::write(writer, wav);
+    let writer = File::create("output.wav").expect("output wav to create correctly.");
+    let _ = WavFile::write(writer, wav);
 }
 
 struct WavFile {
-    reader: File,
     format_chunk: FormatChunk,
     data_chunk: DataChunk,
 }
@@ -250,7 +249,6 @@ impl WavFile {
         }
 
         Ok(WavFile {
-            reader: reader,
             format_chunk: format_chunk.unwrap(),
             data_chunk: data_chunk.unwrap(),
         })
