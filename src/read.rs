@@ -136,11 +136,7 @@ impl WavFile {
                     println!("  {:?}", sampler_chunk);
                     println!("  midi_unity_note: {}", ::note_num_to_name(sampler_chunk.clone().unwrap().midi_unity_note));
                 },
-                b"ltxt" => { // NOTE: 'inst' tag also works in ableton and is a possible replacement tag.
-                    // The instrument chunk is used to describe how the waveform should be played as an instrument sound.
-                    // This information is useful for communicating musical information between sample-based music programs,
-                    // such as trackers or software wavetables. This chunk is optional and no more than 1 may appear in a
-                    // WAVE file.
+                b"ltxt" | b"inst" => { // NOTE: 'inst' tag also works in ableton and is a possible replacement tag.
                     println!("Read: INST length: {:?}", chunk_len);
 
                     instrument_chunk = Some(InstrumentChunk {

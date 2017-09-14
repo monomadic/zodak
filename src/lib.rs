@@ -16,6 +16,11 @@ pub struct WavFile {
     pub format_chunk: FormatChunk,
     pub data_chunk: DataChunk,
     pub sampler_chunk: Option<SamplerChunk>,
+
+    /// The instrument chunk is used to describe how the waveform should be played as an instrument sound.
+    /// This information is useful for communicating musical information between sample-based music programs,
+    /// such as trackers or software wavetables. This chunk is optional and no more than 1 may appear in a
+    /// WAVE file.
     pub instrument_chunk: Option<InstrumentChunk>,
     pub cue_points: Vec<CuePoint>,
 }
@@ -87,20 +92,6 @@ pub struct InstrumentChunk {
     pub high_vel: u8,
 }
 
-impl InstrumentChunk {
-    pub fn serialise(&self) -> Vec<u8> {
-        vec![
-            self.unshifted_note,
-            self.fine_tune,
-            self.gain,
-            self.low_note,
-            self.high_note,
-            self.low_vel,
-            self.high_vel,
-        ]
-    }
-}
-
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CuePoint {
     /// ID
@@ -143,19 +134,6 @@ pub struct CuePoint {
     /// "data" chunk. In compressed waveform data, this value is equal to the number of samples (may or may not be bytes)
     /// from the Block Start to the sample that corresponds to the cue point.
     sample_offset: u32,
-}
-
-impl CuePoint {
-    pub fn serialise(&self) -> Vec<u8> {
-        let mut chunk = Vec::with_capacity(24);
-        unsafe { chunk.set_len(24) }; // todo: find a safe way to zero the elements.
-
-        LittleEndian::write_u32_into(&vec![
-            self.id, self.position, self.data_chunk_id, self.chunk_start, self.block_start, self.sample_offset
-        ], &mut chunk);
-
-        chunk
-    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -219,25 +197,6 @@ enum LoopType {
 impl SamplerChunk {
     pub fn len(&self) -> u32 {
         36 + (self.sample_loops.len() as u32 * 24) + self.sampler_data.len() as u32
-    }
-
-    pub fn serialise(&self) -> Vec<u8> {
-        // let num_sample_loops = self.sample_loops.len() as u32;
-        // let size_of_data_chunk = num_sample_loops * 24;
-
-        let mut chunk = Vec::with_capacity(36 + 24); // space for static fields and sample_loops
-        unsafe { chunk.set_len(36 + 24) }; // todo: find a safe way to zero the elements.
-
-        let sample_loop = self.sample_loops.first().unwrap();
-        let sampler_data = 0; // greater than 0 if extra sampler data is present.
-
-        LittleEndian::write_u32_into(&vec![
-            self.manufacturer, self.product, self.sample_period, self.midi_unity_note, self.midi_pitch_fraction,
-            self.smpte_format, self.smpte_offset, 1_u32, 0,
-            sample_loop.id, 0_u32, sample_loop.start, sample_loop.end, sample_loop.fraction, sample_loop.play_count,
-        ], &mut chunk);
-
-        chunk
     }
 }
 

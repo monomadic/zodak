@@ -23,6 +23,7 @@ fn main() {
     });
 
     wav.sampler_chunk = None;
+    wav.cue_points = Vec::new();
 
     // let mut s=String::new();
     // print!("Low note [0]: ");
