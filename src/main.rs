@@ -12,15 +12,15 @@ fn main() {
     let reader = File::open("resources/smpl_cue.wav").expect("input wav to read correctly.");
     let mut wav = WavFile::read(reader).expect("wav to parse correctly");
 
-    wav.instrument_chunk = Some(InstrumentChunk {
-        unshifted_note: 45,
-        fine_tune: 0,
-        gain: 0,
-        low_note: 40,
-        high_note: 50,
-        low_vel: 10,
-        high_vel: 120,
-    });
+    // wav.instrument_chunk = Some(InstrumentChunk {
+    //     unshifted_note: 45,
+    //     fine_tune: 0,
+    //     gain: 0,
+    //     low_note: 40,
+    //     high_note: 50,
+    //     low_vel: 10,
+    //     high_vel: 120,
+    // });
 
     // let mut s=String::new();
     // print!("Low note [0]: ");

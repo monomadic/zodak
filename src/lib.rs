@@ -23,7 +23,7 @@ pub struct WavFile {
 impl WavFile {
     pub fn len(&self) -> u32 {
         let sampler_chunk_len: u32 = match self.sampler_chunk {
-            Some(s) => { s.len() + 8 },
+            Some(ref s) => { s.len() + 8 },
             _ => 0,
         };
 
@@ -158,7 +158,7 @@ impl CuePoint {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SamplerChunk {
 
     /// The manufacturer field specifies the MIDI Manufacturer's Association (MMA) Manufacturer
@@ -188,15 +188,56 @@ pub struct SamplerChunk {
 
     smpte_offset: u32,
 
-    num_sample_loops: u32,
+    sample_loops: Vec<SampleLoop>,
 
-    sampler_data: u32,
+    /// Sampler Data
+    /// The sampler data value specifies the number of bytes that will follow this chunk (including
+    /// the entire sample loop list). This value is greater than 0 when an application needs to save
+    /// additional information. This value is reflected in this chunks data size value.
+    sampler_data: Vec<u8>,
+}
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct SampleLoop {
+    id: u32,
+
+    /// The type field defines how the waveform samples will be looped.
+    loop_type: LoopType,
+    start: u32,
+    end: u32,
+    fraction: u32,
+    play_count: u32,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+enum LoopType {
+    Forward,
+    PingPong,
+    Reverse,
 }
 
 impl SamplerChunk {
     pub fn len(&self) -> u32 {
-        1000u32 // FIXME 36 + (Num Sample Loops * 24) + Sampler Data
+        36 + (self.sample_loops.len() as u32 * 24) + self.sampler_data.len() as u32
+    }
+
+    pub fn serialise(&self) -> Vec<u8> {
+        // let num_sample_loops = self.sample_loops.len() as u32;
+        // let size_of_data_chunk = num_sample_loops * 24;
+
+        let mut chunk = Vec::with_capacity(36 + 24); // space for static fields and sample_loops
+        unsafe { chunk.set_len(36 + 24) }; // todo: find a safe way to zero the elements.
+
+        let sample_loop = self.sample_loops.first().unwrap();
+        let sampler_data = 0; // greater than 0 if extra sampler data is present.
+
+        LittleEndian::write_u32_into(&vec![
+            self.manufacturer, self.product, self.sample_period, self.midi_unity_note, self.midi_pitch_fraction,
+            self.smpte_format, self.smpte_offset, 1_u32, 0,
+            sample_loop.id, 0_u32, sample_loop.start, sample_loop.end, sample_loop.fraction, sample_loop.play_count,
+        ], &mut chunk);
+
+        chunk
     }
 }
 

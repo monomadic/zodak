@@ -4,7 +4,7 @@ use std::io;
 use std::io::{ Cursor, Read, Error, ErrorKind };
 use std::fs::File;
 
-use { WavFile, FormatChunk, DataChunk, InstrumentChunk, SamplerChunk, CuePoint };
+use { WavFile, FormatChunk, DataChunk, InstrumentChunk, SamplerChunk, SampleLoop, LoopType, CuePoint };
 
 impl WavFile {
     pub fn read(mut reader: File) -> Result<Self, io::Error> { // todo: change with BufReader
@@ -113,12 +113,30 @@ impl WavFile {
                         midi_pitch_fraction: chunk.read_u32::<LittleEndian>()?,
                         smpte_format: chunk.read_u32::<LittleEndian>()?,
                         smpte_offset: chunk.read_u32::<LittleEndian>()?,
-                        num_sample_loops: chunk.read_u32::<LittleEndian>()?,
-                        sampler_data: chunk.read_u32::<LittleEndian>()?,
+                        sample_loops: {
+                            let num_sample_loops = chunk.read_u32::<LittleEndian>()?;
+                            let sampler_data_chunk_size = chunk.read_u32::<LittleEndian>()?;
+
+                            (0..num_sample_loops).map(|i|
+                                SampleLoop {
+                                    id: chunk.read_u32::<LittleEndian>().unwrap(),
+                                    loop_type: {
+                                        let lt = chunk.read_u32::<LittleEndian>().unwrap();
+                                        LoopType::Forward
+                                    },
+                                    start: chunk.read_u32::<LittleEndian>().unwrap(),
+                                    end: chunk.read_u32::<LittleEndian>().unwrap(),
+                                    fraction: chunk.read_u32::<LittleEndian>().unwrap(),
+                                    play_count: chunk.read_u32::<LittleEndian>().unwrap(),
+                                }
+                            ).collect()
+                        },
+                        sampler_data: Vec::new(),
                     });
 
                     println!("  {:?}", sampler_chunk);
-                    println!("  midi_unity_note: {}", ::note_num_to_name(sampler_chunk.unwrap().midi_unity_note));
+                    println!("{:?}", chunk.into_inner());
+                    println!("  midi_unity_note: {}", ::note_num_to_name(sampler_chunk.clone().unwrap().midi_unity_note));
                 },
                 b"ltxt" => { // NOTE: 'inst' tag also works in ableton and is a possible replacement tag.
                     // The instrument chunk is used to describe how the waveform should be played as an instrument sound.
