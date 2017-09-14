@@ -19,7 +19,7 @@ impl WavFile {
             let tag = reader.read_u32::<LittleEndian>()?;
             if &tag.to_string() == "RIFF" {
                 return Err(Error::new(ErrorKind::Other, "no RIFF tag found"));
-            } else { println!("RIFF tag found."); }
+            } else { println!("Read: RIFF"); }
         }
 
         // get file length (minus RIFF header)
@@ -30,7 +30,7 @@ impl WavFile {
             let tag = reader.read_u32::<LittleEndian>()?;
             if &tag.to_string() == "WAVE" {
                 return Err(Error::new(ErrorKind::Other, "no WAVE tag found"));
-            } else { println!("WAVE tag found."); }
+            } else { println!("Read: WAVE"); }
         }
 
         loop { // read chunks
@@ -46,27 +46,26 @@ impl WavFile {
 
             match &tag {
                 b"fmt " => {
-                    println!("FMT  chunk found. length: {:?}", chunk_len);
                     if chunk_len < 16 { return Err(Error::new(ErrorKind::Other, "invalid fmt chunk size")) };
                     format_chunk = Some(FormatChunk{
                         data: chunk.into_inner(),
                     });
+                    println!("Read: FMT length: {:?}", chunk_len);
                 },
                 b"data" => {
-                    println!("DATA chunk found. length: {:?}", chunk_len);
                     data_chunk = Some(DataChunk{
                         data: chunk.into_inner(),
                     });
+                    println!("Read: DATA length: {:?}", chunk_len);
                 },
                 b"fact" => {
-                    println!("FACT chunk found. length: {:?}", chunk_len);
+                    println!("Read: FACT length: {:?}", chunk_len);
                 },
                 b"cue " => {
-                    println!("CUE  chunk found. length: {:?}", chunk_len);
+                    println!("Read: CUE length: {:?}", chunk_len);
                     let num_cue_points = chunk.read_u32::<LittleEndian>()?;
-                    println!("  cue points: {:?}", num_cue_points);
+                    println!("  cue_points: {:?}", num_cue_points);
                     println!("  chunk: {:?}", chunk);
-
 
                     let chunk_data_size = 4 + (num_cue_points * 24); // 24 bytes per cue point (6 x u8)
                     if chunk_len < chunk_data_size { return Err(Error::new(ErrorKind::Other, "invalid cue chunk size")); }
@@ -86,24 +85,24 @@ impl WavFile {
                     // println!("  data_chunk_id: {}", cue_point.data_chunk_id.to_string());
                 },
                 b"plst" => {
-                    println!("PLST chunk found. length: {:?}", chunk_len);
+                    println!("Read: PLST length: {:?}", chunk_len);
                     let num_cue_points = chunk.read_u32::<LittleEndian>()?;
                     let chunk_data_size = num_cue_points * 12;
                     if chunk_len < chunk_data_size { return Err(Error::new(ErrorKind::Other, "invalid plst chunk size")) };
                 },
                 b"list" => {
-                    println!("LIST chunk found. length: {:?}", chunk_len);
+                    println!("Read: LIST length: {:?}", chunk_len);
 
                 },
                 b"labl" => {
-                    println!("LABL chunk found. length: {:?}", chunk_len);
+                    println!("Read: LABL length: {:?}", chunk_len);
                 },
                 // b"ltxt" => { println!("LTXT chunk found. length: {:?}", chunk_len); },
                 b"note" => {
-                    println!("NOTE chunk found. length: {:?}", chunk_len);
+                    println!("Read: NOTE length: {:?}", chunk_len);
                 },
                 b"smpl" => {
-                    println!("SMPL chunk found. length: {:?}", chunk_len);
+                    println!("Read: SMPL length: {:?}", chunk_len);
 
                     sampler_chunk = Some(SamplerChunk {
                         manufacturer: chunk.read_u32::<LittleEndian>()?,
@@ -135,7 +134,6 @@ impl WavFile {
                     });
 
                     println!("  {:?}", sampler_chunk);
-                    println!("{:?}", chunk.into_inner());
                     println!("  midi_unity_note: {}", ::note_num_to_name(sampler_chunk.clone().unwrap().midi_unity_note));
                 },
                 b"ltxt" => { // NOTE: 'inst' tag also works in ableton and is a possible replacement tag.
@@ -143,7 +141,7 @@ impl WavFile {
                     // This information is useful for communicating musical information between sample-based music programs,
                     // such as trackers or software wavetables. This chunk is optional and no more than 1 may appear in a
                     // WAVE file.
-                    println!("INST chunk found. length: {:?}", chunk_len);
+                    println!("Read: INST length: {:?}", chunk_len);
 
                     instrument_chunk = Some(InstrumentChunk {
                         unshifted_note: chunk.read_u8()?,
@@ -154,14 +152,9 @@ impl WavFile {
                         low_vel: chunk.read_u8()?,
                         high_vel: chunk.read_u8()?,
                     });
-
-                    println!("  {:?}", instrument_chunk);
-
                 }, // this should be ltxt
                 _ => { println!("WARNING: unknown chunk: {:?}, length: {:?}", ::std::str::from_utf8(&tag).unwrap(), chunk_len); }
             }
-
-            println!("");
         }
 
         Ok(WavFile {

@@ -9,7 +9,7 @@ use WavFile;
 
 impl WavFile {
     pub fn write(mut writer: File, wav: WavFile) -> Result<(), Error> {
-        
+
         { // RIFF chunk
             println!("Writing: RIFF");
             writer.write(b"RIFF")?;                             // RIFF tag
@@ -39,7 +39,7 @@ impl WavFile {
                     writer.write_u32::<LittleEndian>(7)?;       // chunk size is always 7 for inst
                     writer.write(&inst.serialise())?;
                 },
-                None => { println!("Instrument chunk not found, skipping."); }
+                None => { println!("Missing: INST"); }
             }
         }
 
@@ -53,7 +53,7 @@ impl WavFile {
                 writer.write_u32::<LittleEndian>(1_u32)?;                   // number of cue points
 
                 writer.write(&chunk)?;
-            } else { println!("Cue chunk not found, skipping."); }
+            } else { println!("Missing: CUE"); }
         }
 
         { // SMPL chunk
@@ -65,7 +65,7 @@ impl WavFile {
                     writer.write_u32::<LittleEndian>(smpl.len())?;  // chunk size
                     writer.write(&smpl.serialise())?;               // chunk data
                 },
-                None => { println!("Instrument chunk not found, skipping."); }
+                None => { println!("Missing: SMPL"); }
             }
         }
 
