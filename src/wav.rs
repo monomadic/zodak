@@ -1,11 +1,11 @@
-struct WavFile {
+pub struct WavFile {
     reader: File,
     file_len: u32,
     // format_chunk: FormatChunk,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-struct InstrumentChunk {
+pub struct InstrumentChunk {
     /// The unshifted note field has the same meaning as the sampler chunk's MIDI Unity Note which specifies the
     /// musical note at which the sample will be played at it's original sample rate (the sample rate specified
     /// in the format chunk). (0-127)
@@ -19,7 +19,7 @@ struct InstrumentChunk {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-struct CuePoint {
+pub struct CuePoint {
     id: u32,
     position: u32,
     data_chunk_id: u32,
@@ -29,7 +29,7 @@ struct CuePoint {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-struct SamplerChunk {
+pub struct SamplerChunk {
 
     /// The manufacturer field specifies the MIDI Manufacturer's Association (MMA) Manufacturer
     /// code for the sampler intended to receive this file's waveform. Each manufacturer of a

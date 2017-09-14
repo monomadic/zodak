@@ -27,6 +27,27 @@ impl WavFile {
             writer.write(&wav.data_chunk.data)?;
         }
 
+        { // INST chunk
+            match wav.instrument_chunk {
+                Some(inst) => {
+                    println!("Instrument chunk found, writing.");
+                    writer.write(b"ltxt")?;                     // tag
+                    writer.write_u32::<LittleEndian>(7)?;       // chunk size is always 7 for inst
+                    writer.write(&inst.serialise())?;
+                },
+                None => { println!("Instrument chunk not found, skipping."); }
+            }
+        }
+
+        // { // CUE chunk
+        //     if let Some(cue) = wav.cue_points.first() {
+        //         println!("Cue chunk found, writing.");
+        //         writer.write(b"cue ")?;                     // tag
+        //         writer.write_u32::<LittleEndian>(7)?;       // chunk size is always 7 for inst
+        //         writer.write(&cue.serialise())?;
+        //     } else { println!("Cue chunk not found, skipping."); }
+        // }
+
         Ok(())
     }
 }
