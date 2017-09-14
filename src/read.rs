@@ -45,27 +45,26 @@ impl WavFile {
             let mut chunk = Cursor::new(::read_bytes(&mut reader, chunk_len as usize)?);
 
             match &tag {
-                b"fmt " => {
+                b"fmt " | b"FMT " => {
                     if chunk_len < 16 { return Err(Error::new(ErrorKind::Other, "invalid fmt chunk size")) };
                     format_chunk = Some(FormatChunk{
                         data: chunk.into_inner(),
                     });
                     println!("Read: FMT length: {:?}", chunk_len);
                 },
-                b"data" => {
+                b"data" | b"DATA" => {
                     data_chunk = Some(DataChunk{
                         data: chunk.into_inner(),
                     });
                     println!("Read: DATA length: {:?}", chunk_len);
                 },
-                b"fact" => {
+                b"fact" | b"FACT" => {
                     println!("Read: FACT length: {:?}", chunk_len);
                 },
-                b"cue " => {
+                b"cue " | b"CUE " => {
                     println!("Read: CUE length: {:?}", chunk_len);
                     let num_cue_points = chunk.read_u32::<LittleEndian>()?;
                     println!("  cue_points: {:?}", num_cue_points);
-                    println!("  chunk: {:?}", chunk);
 
                     let chunk_data_size = 4 + (num_cue_points * 24); // 24 bytes per cue point (6 x u8)
                     if chunk_len < chunk_data_size { return Err(Error::new(ErrorKind::Other, "invalid cue chunk size")); }
@@ -79,29 +78,31 @@ impl WavFile {
                         sample_offset: chunk.read_u32::<LittleEndian>()?,
                     });
 
+                    println!("chunk: {:?}\n{:?}", cue_points.first().unwrap(), chunk.into_inner());
+
                     // TODO: support for multiple cue points.
 
                     // println!("  {:?}", cue_point);
                     // println!("  data_chunk_id: {}", cue_point.data_chunk_id.to_string());
                 },
-                b"plst" => {
+                b"plst" | b"PLST" => {
                     println!("Read: PLST length: {:?}", chunk_len);
                     let num_cue_points = chunk.read_u32::<LittleEndian>()?;
                     let chunk_data_size = num_cue_points * 12;
                     if chunk_len < chunk_data_size { return Err(Error::new(ErrorKind::Other, "invalid plst chunk size")) };
                 },
-                b"list" => {
+                b"list" | b"LIST" => {
                     println!("Read: LIST length: {:?}", chunk_len);
 
                 },
-                b"labl" => {
+                b"labl" | b"LABL" => {
                     println!("Read: LABL length: {:?}", chunk_len);
                 },
                 // b"ltxt" => { println!("LTXT chunk found. length: {:?}", chunk_len); },
-                b"note" => {
+                b"note" | b"NOTE" => {
                     println!("Read: NOTE length: {:?}", chunk_len);
                 },
-                b"smpl" => {
+                b"smpl" | b"SMPL" => { // SyLp?
                     println!("Read: SMPL length: {:?}", chunk_len);
 
                     sampler_chunk = Some(SamplerChunk {
@@ -137,8 +138,6 @@ impl WavFile {
                     println!("  midi_unity_note: {}", ::note_num_to_name(sampler_chunk.clone().unwrap().midi_unity_note));
                 },
                 b"ltxt" | b"inst" => { // NOTE: 'inst' tag also works in ableton and is a possible replacement tag.
-                    println!("Read: INST length: {:?}", chunk_len);
-
                     instrument_chunk = Some(InstrumentChunk {
                         unshifted_note: chunk.read_u8()?,
                         fine_tune: chunk.read_u8()?,
@@ -148,6 +147,7 @@ impl WavFile {
                         low_vel: chunk.read_u8()?,
                         high_vel: chunk.read_u8()?,
                     });
+                    println!("Read: INST length: {:?}", chunk_len);
                 }, // this should be ltxt
                 _ => { println!("WARNING: unknown chunk: {:?}, length: {:?}", ::std::str::from_utf8(&tag).unwrap(), chunk_len); }
             }

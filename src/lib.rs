@@ -41,11 +41,16 @@ impl WavFile {
         self.format_chunk.len() + 8 +
         self.data_chunk.len() + 8 +
         sampler_chunk_len + 
-        instrument_chunk_len
+        instrument_chunk_len +
+        self.cue_chunk_len()
     }
 
     pub fn cue_chunk_len(&self) -> u32 {
-        4_u32 + (self.cue_points.len() as u32 * 24)
+        if self.cue_points.is_empty() {
+            0
+        } else {
+            4_u32 + (self.cue_points.len() as u32 * 24)
+        }
     }
 }
 
@@ -149,46 +154,46 @@ pub struct SamplerChunk {
     /// low order bytes (1 or 3) that are valid for the manufacturer code. For example, the value
     /// for Digidesign will be 0x01000013 (0x13) and the value for Microsoft will be 0x30000041
     /// (0x00, 0x00, 0x41). See the MIDI Manufacturers List for a list.
-    manufacturer: u32,
+    pub manufacturer: u32,
 
     /// The product field specifies the MIDI model ID defined by the manufacturer corresponding to
     /// the Manufacturer field. Contact the manufacturer of the sampler to get the model ID. If no
     /// particular manufacturer's product is to be specified, a value of 0 should be used.
-    product: u32,
+    pub product: u32,
 
-    sample_period: u32,
+    pub sample_period: u32,
 
-    midi_unity_note: u32,
+    pub midi_unity_note: u32,
 
-    midi_pitch_fraction: u32,
+    pub midi_pitch_fraction: u32,
 
-    smpte_format: u32,
+    pub smpte_format: u32,
 
-    smpte_offset: u32,
+    pub smpte_offset: u32,
 
-    sample_loops: Vec<SampleLoop>,
+    pub sample_loops: Vec<SampleLoop>,
 
     /// Sampler Data
     /// The sampler data value specifies the number of bytes that will follow this chunk (including
     /// the entire sample loop list). This value is greater than 0 when an application needs to save
     /// additional information. This value is reflected in this chunks data size value.
-    sampler_data: Vec<u8>,
+    pub sampler_data: Vec<u8>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-struct SampleLoop {
-    id: u32,
+pub struct SampleLoop {
+    pub id: u32,
 
     /// The type field defines how the waveform samples will be looped.
-    loop_type: LoopType,
-    start: u32,
-    end: u32,
-    fraction: u32,
-    play_count: u32,
+    pub loop_type: LoopType,
+    pub start: u32,
+    pub end: u32,
+    pub fraction: u32,
+    pub play_count: u32,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-enum LoopType {
+pub enum LoopType {
     Forward,
     PingPong,
     Reverse,
@@ -226,4 +231,8 @@ pub fn note_num_to_name(num: u32) -> String {
             &NSTRS[nmt..(nmt+2)]
         };
     format!("{}{}",slice,oct)
+}
+
+pub fn padded_size(size: u32) -> u32 {
+    ((size + 1) / 2) * 2
 }
