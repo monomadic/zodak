@@ -5,7 +5,7 @@ extern crate wavedit;
 use wavedit::{ WavFile, InstrumentChunk };
 
 use std::io;
-use std::io::{ Cursor, Read, Error, ErrorKind };
+use std::io::{ Write, Cursor, Read, Error, ErrorKind };
 use std::fs::File;
 
 fn main() {
@@ -21,6 +21,11 @@ fn main() {
         low_vel: 10,
         high_vel: 120,
     });
+
+    // let mut s=String::new();
+    // print!("Low note [0]: ");
+    // let _= io::stdout().flush();
+    // io::stdin().read_line(&mut s).expect("Did not enter a correct string");
 
     let writer = File::create("output.wav").expect("output wav to create correctly.");
     let _ = WavFile::write(writer, wav);

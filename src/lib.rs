@@ -1,6 +1,7 @@
 // https://sites.google.com/site/musicgapi/technical-documents/wav-file-format#inst
 
 extern crate byteorder;
+use byteorder::{ ByteOrder, LittleEndian };
 
 use std::io;
 use std::io::{ Cursor, Read, Error, ErrorKind };
@@ -36,6 +37,10 @@ impl WavFile {
         self.data_chunk.len() + 8 +
         sampler_chunk_len + 
         instrument_chunk_len
+    }
+
+    pub fn cue_chunk_len(&self) -> u32 {
+        4_u32 + (self.cue_points.len() as u32 * 24)
     }
 }
 
@@ -141,15 +146,15 @@ pub struct CuePoint {
 }
 
 impl CuePoint {
-    pub fn serialise(&self) -> Vec<u32> {
-        vec![
-            self.id,
-            self.position,
-            self.data_chunk_id,
-            self.chunk_start,
-            self.block_start,
-            self.sample_offset,
-        ]
+    pub fn serialise(&self) -> Vec<u8> {
+        let mut chunk = Vec::with_capacity(24);
+        unsafe { chunk.set_len(24) }; // todo: find a safe way to zero the elements.
+
+        LittleEndian::write_u32_into(&vec![
+            self.id, self.position, self.data_chunk_id, self.chunk_start, self.block_start, self.sample_offset
+        ], &mut chunk);
+
+        chunk
     }
 }
 

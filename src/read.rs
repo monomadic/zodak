@@ -65,23 +65,25 @@ impl WavFile {
                     println!("CUE  chunk found. length: {:?}", chunk_len);
                     let num_cue_points = chunk.read_u32::<LittleEndian>()?;
                     println!("  cue points: {:?}", num_cue_points);
+                    println!("  chunk: {:?}", chunk);
+
 
                     let chunk_data_size = 4 + (num_cue_points * 24); // 24 bytes per cue point (6 x u8)
                     if chunk_len < chunk_data_size { return Err(Error::new(ErrorKind::Other, "invalid cue chunk size")); }
 
-                    let cue_point = CuePoint {
+                    cue_points.push(CuePoint {
                         id: chunk.read_u32::<LittleEndian>()?,
                         position: chunk.read_u32::<LittleEndian>()?,
                         data_chunk_id: chunk.read_u32::<LittleEndian>()?,
                         chunk_start: chunk.read_u32::<LittleEndian>()?,
                         block_start: chunk.read_u32::<LittleEndian>()?,
                         sample_offset: chunk.read_u32::<LittleEndian>()?,
-                    };
+                    });
 
                     // TODO: support for multiple cue points.
 
-                    println!("  {:?}", cue_point);
-                    println!("  data_chunk_id: {}", cue_point.data_chunk_id.to_string());
+                    // println!("  {:?}", cue_point);
+                    // println!("  data_chunk_id: {}", cue_point.data_chunk_id.to_string());
                 },
                 b"plst" => {
                     println!("PLST chunk found. length: {:?}", chunk_len);

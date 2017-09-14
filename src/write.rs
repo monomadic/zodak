@@ -39,14 +39,18 @@ impl WavFile {
             }
         }
 
-        // { // CUE chunk
-        //     if let Some(cue) = wav.cue_points.first() {
-        //         println!("Cue chunk found, writing.");
-        //         writer.write(b"cue ")?;                     // tag
-        //         writer.write_u32::<LittleEndian>(7)?;       // chunk size is always 7 for inst
-        //         writer.write(&cue.serialise())?;
-        //     } else { println!("Cue chunk not found, skipping."); }
-        // }
+        { // CUE chunk
+            if let Some(cue) = wav.cue_points.first() {
+                let chunk = cue.serialise();
+
+                println!("Writing: CUE");
+                writer.write(b"cue ")?;                                     // tag
+                writer.write_u32::<LittleEndian>(wav.cue_chunk_len())?;     // ChunkDataSize = 4 + (NumCuePoints * 24)
+                writer.write_u32::<LittleEndian>(1_u32)?;                   // number of cue points
+
+                writer.write(&chunk)?;
+            } else { println!("Cue chunk not found, skipping."); }
+        }
 
         Ok(())
     }
