@@ -7,6 +7,7 @@ use std::io::{ Error };
 use { WavFile, SamplerChunk, InstrumentChunk, CuePoint };
 use padded_size; // implement
 
+// note: should really build these up in memory first then flush to file, safer and easier to calculate sizes.
 impl WavFile {
     pub fn write(mut writer: File, wav: WavFile) -> Result<(), Error> {
 
@@ -19,25 +20,29 @@ impl WavFile {
 
         { // FMT chunk
             println!("Writing: FMT, len: {}", wav.format_chunk.len());
-            writer.write(b"fmt ")?;                                         // tag
-            writer.write_u32::<LittleEndian>(wav.format_chunk.len())?;      // chunk size (minus 8 bytes for header)
-            writer.write(&wav.format_chunk.data)?;
+            // writer.write(b"fmt ")?;                                         // tag
+            // writer.write_u32::<LittleEndian>(wav.format_chunk.len())?;      // chunk size (minus 8 bytes for header)
+            // writer.write(&wav.format_chunk.data)?;
+            writer.write_chunk(b"fmt ", wav.format_chunk.len(), &wav.format_chunk.data)?;
         }
 
         { // DATA chunk
             println!("Writing: DATA, len: {}:{}", wav.data_chunk.len(), ::padded_size(wav.data_chunk.len()));
-            writer.write(b"data")?;                                         // tag
-            writer.write_u32::<LittleEndian>(wav.data_chunk.len())?;        // chunk size (minus 8 bytes for header)
-            writer.write(&wav.data_chunk.data)?;
+            // writer.write(b"data")?;                                         // tag
+            // writer.write_u32::<LittleEndian>(wav.data_chunk.len())?;        // chunk size (minus 8 bytes for header)
+            // writer.write(&wav.data_chunk.data)?;
+
+            writer.write_chunk(b"data", wav.data_chunk.len(), &wav.data_chunk.data)?;
         }
 
         { // INST chunk
             match wav.instrument_chunk {
                 Some(inst) => {
+                    writer.write_chunk(b"inst", 7, &inst.serialise())?;
                     println!("Writing: INST, len: r:{} a:{}", 7, inst.serialise().len());
-                    writer.write(b"ltxt")?;                     // tag
-                    writer.write_u32::<LittleEndian>(7)?;       // chunk size is always 7 for inst
-                    writer.write(&inst.serialise())?;           // chunk data
+                    // writer.write(b"ltxt")?;                     // tag
+                    // writer.write_u32::<LittleEndian>(7)?;       // chunk size is always 7 for inst
+                    // writer.write(&inst.serialise())?;           // chunk data
                 },
                 None => { println!("Missing: INST"); }
             }
@@ -134,3 +139,15 @@ impl CuePoint {
         chunk
     }
 }
+
+trait ChunkWriter { fn write_chunk(&mut self, tag:&[u8; 4], size:u32, data:&Vec<u8>) -> Result<(), Error>; }
+impl ChunkWriter for File {
+    fn write_chunk(&mut self, tag:&[u8; 4], size:u32, data:&Vec<u8>) -> Result<(), Error> {
+        // todo: check validity (correct file sizes)
+        self.write(tag)?;                         // tag
+        self.write_u32::<LittleEndian>(size)?;    // chunk size (minus 8 bytes for header)
+        self.write(&data)?;                       // data
+        Ok(())
+    }
+}
+

@@ -48,8 +48,8 @@ fn main() {
         }
     }
 
-    let reader = File::open("resources/inst.wav").expect("input wav to read correctly.");
-    let mut wav = WavFile::read(reader).expect("wav to parse correctly");
+    // let reader = File::open("resources/inst.wav").expect("input wav to read correctly.");
+    // let mut wav = WavFile::read(reader).expect("wav to parse correctly");
 
 
     // println!("{:?}", input_dir);
@@ -75,36 +75,36 @@ fn main() {
     //     high_vel: 120,
     // });
 
-    use wavedit::{ SamplerChunk, SampleLoop, LoopType };
-    wav.sampler_chunk = Some(SamplerChunk {
-        manufacturer: 0,
-        product: 0,
-        sample_period: 10,
-        midi_unity_note: 20,
-        midi_pitch_fraction: 0,
-        smpte_format: 0,
-        smpte_offset: 0,
-        sample_loops: vec![SampleLoop {
-            id: 0,
-            loop_type: LoopType::Forward,
-            start: 10,
-            end: 1000,
-            fraction: 0,
-            play_count: 0,
-        }],
-        sampler_data: Vec::new(),
-    });
+    // use wavedit::{ SamplerChunk, SampleLoop, LoopType };
+    // wav.sampler_chunk = Some(SamplerChunk {
+    //     manufacturer: 0,
+    //     product: 0,
+    //     sample_period: 10,
+    //     midi_unity_note: 20,
+    //     midi_pitch_fraction: 0,
+    //     smpte_format: 0,
+    //     smpte_offset: 0,
+    //     sample_loops: vec![SampleLoop {
+    //         id: 0,
+    //         loop_type: LoopType::Forward,
+    //         start: 10,
+    //         end: 1000,
+    //         fraction: 0,
+    //         play_count: 0,
+    //     }],
+    //     sampler_data: Vec::new(),
+    // });
 
-    // wav.sampler_chunk = None;
-    // wav.cue_points = Vec::new();
+    // // wav.sampler_chunk = None;
+    // // wav.cue_points = Vec::new();
 
-    // let mut s=String::new();
-    // print!("Low note [0]: ");
-    // let _= io::stdout().flush();
-    // io::stdin().read_line(&mut s).expect("Did not enter a correct string");
+    // // let mut s=String::new();
+    // // print!("Low note [0]: ");
+    // // let _= io::stdout().flush();
+    // // io::stdin().read_line(&mut s).expect("Did not enter a correct string");
 
-    let writer = File::create("output.wav").expect("output wav to create correctly.");
-    let _ = WavFile::write(writer, wav);
+    // let writer = File::create("output.wav").expect("output wav to create correctly.");
+    // let _ = WavFile::write(writer, wav);
 }
 
 pub fn process_wav(path:PathBuf, name:&str, mut dest:PathBuf) {
@@ -121,24 +121,34 @@ pub fn process_wav(path:PathBuf, name:&str, mut dest:PathBuf) {
 
     println!("using: {:?} as midi unity note.", midi_note_number);
 
-    use wavedit::{ SamplerChunk, SampleLoop, LoopType };
-    wav.sampler_chunk = Some(SamplerChunk {
-        manufacturer: 0,
-        product: 0,
-        sample_period: 10,
-        midi_unity_note: midi_note_number as u32,
-        midi_pitch_fraction: 0,
-        smpte_format: 0,
-        smpte_offset: 0,
-        sample_loops: vec![SampleLoop {
-            id: 0,
-            loop_type: LoopType::Forward,
-            start: 10,
-            end: 1000,
-            fraction: 0,
-            play_count: 0,
-        }],
-        sampler_data: Vec::new(),
+    // use wavedit::{ SamplerChunk, SampleLoop, LoopType };
+    // wav.sampler_chunk = Some(SamplerChunk {
+    //     manufacturer: 0,
+    //     product: 0,
+    //     sample_period: 10,
+    //     midi_unity_note: midi_note_number as u32,
+    //     midi_pitch_fraction: 0,
+    //     smpte_format: 0,
+    //     smpte_offset: 0,
+    //     sample_loops: vec![SampleLoop {
+    //         id: 0,
+    //         loop_type: LoopType::Forward,
+    //         start: 10,
+    //         end: 1000,
+    //         fraction: 0,
+    //         play_count: 0,
+    //     }],
+    //     sampler_data: Vec::new(),
+    // });
+
+    wav.instrument_chunk = Some(InstrumentChunk {
+        unshifted_note: 45,
+        fine_tune: 0,
+        gain: 0,
+        low_note: 40,
+        high_note: 80,
+        low_vel: 0,
+        high_vel: 255,
     });
 
     let note_name = wavedit::note_num_to_name(midi_note_number as u32);
