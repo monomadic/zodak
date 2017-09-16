@@ -43,7 +43,7 @@ impl WavFile {
 
             let chunk_len = reader.read_u32::<LittleEndian>()?; // size
             let mut chunk = Cursor::new(::read_bytes(&mut reader, chunk_len as usize)?);
-
+            
             match &tag {
                 b"fmt " | b"FMT " => {
                     if chunk_len < 16 { return Err(Error::new(ErrorKind::Other, "invalid fmt chunk size")) };
@@ -53,10 +53,19 @@ impl WavFile {
                     println!("Read: FMT length: {:?}", chunk_len);
                 },
                 b"data" | b"DATA" => {
+                    let mut data = chunk.into_inner();
+
+                    if ::padded_size(chunk_len) != chunk_len {
+                        println!("padding required for incorrect chunk size: {:?}, should be {:?}", chunk_len, ::padded_size(chunk_len));
+                        ::pad_vec(&mut data, (::padded_size(chunk_len) - chunk_len) as usize);
+
+                        println!("padding complete, new size: {:?}", data.len());
+                    }
+                    
+                    println!("Read: DATA length: {} {}", chunk_len, data.len());
                     data_chunk = Some(DataChunk{
-                        data: chunk.into_inner(),
+                        data: data,
                     });
-                    println!("Read: DATA length: {:?}", chunk_len);
                 },
                 b"fact" | b"FACT" => {
                     println!("Read: FACT length: {:?}", chunk_len);

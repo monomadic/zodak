@@ -215,6 +215,7 @@ fn read_bytes(ref mut reader: &mut File, n: usize) -> io::Result<Vec<u8>> {
 
     let mut buf = vec![];
     try!(io::copy(&mut reader.take(n as u64), &mut buf));
+
     Ok(buf)
 }
 
@@ -234,5 +235,10 @@ pub fn note_num_to_name(num: u32) -> String {
 }
 
 pub fn padded_size(size: u32) -> u32 {
-    ((size + 1) / 2) * 2
+    (((size + 1) / 2) * 2)
+}
+
+pub fn pad_vec(mut v:&mut Vec<u8>, size: usize) {
+    println!("attempting to pad {} bytes.", size);
+    for _ in 0..size { print!(":"); v.push(0) };
 }

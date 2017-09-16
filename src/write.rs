@@ -5,6 +5,7 @@ use std::fs::File;
 use std::io::{ Error };
 
 use { WavFile, SamplerChunk, InstrumentChunk, CuePoint };
+use padded_size; // implement
 
 impl WavFile {
     pub fn write(mut writer: File, wav: WavFile) -> Result<(), Error> {
@@ -24,7 +25,7 @@ impl WavFile {
         }
 
         { // DATA chunk
-            println!("Writing: DATA, len: {}", wav.data_chunk.len());
+            println!("Writing: DATA, len: {}:{}", wav.data_chunk.len(), ::padded_size(wav.data_chunk.len()));
             writer.write(b"data")?;                                         // tag
             writer.write_u32::<LittleEndian>(wav.data_chunk.len())?;        // chunk size (minus 8 bytes for header)
             writer.write(&wav.data_chunk.data)?;
@@ -59,7 +60,7 @@ impl WavFile {
             match wav.sampler_chunk {
                 Some(smpl) => {
                     println!("{:?}", smpl.serialise());
-                    println!("Writing: SMPL");
+                    println!("Writing: SMPL, len: r:{} a:{}", smpl.len(), smpl.serialise().len());
                     writer.write(b"smpl")?;                         // tag
                     writer.write_u32::<LittleEndian>(smpl.len())?;  // chunk size
                     writer.write(&smpl.serialise())?;               // chunk data

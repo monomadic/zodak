@@ -5,6 +5,8 @@ authors = ["Rob Saunders <rob@wearebrandnew.com>"]
 
 [dependencies]
 byteorder = "1.1"
+# glob = "0.2"
+docopt = "0.8"
 
 [[bin]]
 name = "wavedit"
