@@ -16,10 +16,12 @@ impl WavFile {
         let mut cue_points: Vec<CuePoint> = Vec::new();
         
         {   // read RIFF header
-            let tag = reader.read_u32::<LittleEndian>()?;
-            if &tag.to_string() == "RIFF" {
+            let mut tag=[0u8;4]; // header tag
+            reader.read(&mut tag)?;
+
+            if &tag != b"RIFF" {
                 return Err(Error::new(ErrorKind::Other, "no RIFF tag found"));
-            } else { println!("Read: RIFF"); }
+            }
         }
 
         // get file length (minus RIFF header)
@@ -27,10 +29,12 @@ impl WavFile {
         println!("Filesize: {:?}", file_len);
         
         {   // read WAVE header 
-            let tag = reader.read_u32::<LittleEndian>()?;
-            if &tag.to_string() == "WAVE" {
+            let mut tag=[0u8;4]; // header tag
+            reader.read(&mut tag)?;
+
+            if &tag != b"WAVE" {
                 return Err(Error::new(ErrorKind::Other, "no WAVE tag found"));
-            } else { println!("Read: WAVE"); }
+            }
         }
 
         loop { // read chunks

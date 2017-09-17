@@ -38,6 +38,9 @@ fn main() {
     // println!("note_num_to_name A2(57): {:?}\n", note_num_to_name(57));
     // println!("note_num_to_name A#5(94): {:?}\n", note_num_to_name(94));
 
+    println!("WAVEDIT v{}", VERSION);
+    println!("using instrument mode.\n");
+
     let args = Docopt::new(USAGE)
         .and_then(|dopt| dopt
             .version(Some(VERSION.to_string()))
@@ -47,7 +50,10 @@ fn main() {
     let src = args.get_vec("<sourcedir>");
     let dest = args.get_vec("<destdir>");
 
-    let instrument_name = get_input("instrument name: ");
+    let instrument_name_default = dir_as_string(src[0]);
+    let mut instrument_name = get_input(format!("instrument name [{}]: ", instrument_name_default).as_str());
+
+    if instrument_name == "" { instrument_name = instrument_name_default };
 
     let paths = read_directory_paths(Path::new(src[0])).expect("dir to have files");
     for path in paths {
@@ -154,4 +160,15 @@ pub fn read_directory_paths(path:&Path) -> io::Result<Vec<PathBuf>> {
     }
 
     Ok(paths)
+}
+
+pub fn dir_as_string(path:&str) -> String {
+    let mut current_dir = PathBuf::new();
+    if path == "." {
+        use std::env;
+        current_dir = env::current_dir().unwrap();
+    } else {
+        current_dir.push(path);
+    }
+    current_dir.file_name().expect("current directory to be valid").to_string_lossy().into_owned()
 }
