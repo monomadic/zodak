@@ -55,23 +55,48 @@ fn main() {
 
     if instrument_name == "" { instrument_name = instrument_name_default };
 
+    // SFZ
+    let mut sfzfile = PathBuf::new();
+    sfzfile.push(dest[0]);
+    sfzfile.push(instrument_name.as_str());
+    sfzfile.set_extension("sfz");
+    let mut sfz = File::create(sfzfile).expect("sfz to create for writing");
+
     let paths = read_directory_paths(Path::new(src[0])).expect("dir to have files");
     for path in paths {
         let mut dest_path = PathBuf::new();
         dest_path.push(dest[0]);
 
         match path.extension().and_then(|oss| oss.to_str()) {
-            Some("wav") => { process_wav(path, instrument_name.as_str(), dest_path) },
+            Some("wav") => {
+                let reader = File::open(path).expect("input wav to read correctly.");
+                let mut wav = WavFile::read(reader).expect("wav to parse correctly");
+
+                process_wav(&mut wav, instrument_name.as_str(), &mut dest_path);
+                append_sample_to_sfz(&mut sfz, &wav, &dest_path);
+            },
             _ => (),
         }
     }
 }
 
-pub fn process_wav(path:PathBuf, name:&str, mut dest:PathBuf) {
-    println!("\n{}", path.file_name().unwrap().to_str().unwrap());
+pub fn append_sample_to_sfz(sfz:&mut File, wav:&WavFile, mut dest:&PathBuf) {
+    writeln!(sfz, "<region>");
+    writeln!(sfz, "sample={}", dest.file_name().unwrap().to_string_lossy().into_owned());
+    writeln!(sfz, "pitch_keycenter={}", wav.pitch_keycenter().expect("wav object to contain a key center"));
 
-    let reader = File::open(path).expect("input wav to read correctly.");
-    let mut wav = WavFile::read(reader).expect("wav to parse correctly");
+    let key_range = wav.key_range().expect("wav object to contain a key range");
+    writeln!(sfz, "lokey={} hikey={}", key_range.0, key_range.1);
+
+    let loop_points = wav.loop_points().expect("wav object to contain loop points");
+    writeln!(sfz, "loop_mode=loop_continuous loop_start={} loop_end={}\n", loop_points.0, loop_points.1);
+}
+
+pub fn process_wav(wav:&mut WavFile, name:&str, mut dest:&mut PathBuf) {
+    println!("\n{:?}", dest.file_name());
+
+    // let reader = File::open(path).expect("input wav to read correctly.");
+    // let mut wav = WavFile::read(reader).expect("wav to parse correctly");
 
     let midi_note_number = get_input("midi unity note (C0-G8): ");
     let midi_note_number = name_to_note_num(&midi_note_number);
@@ -130,8 +155,10 @@ pub fn process_wav(path:PathBuf, name:&str, mut dest:PathBuf) {
         high_vel: 255,
     });
 
-    let note_name = zodak::note_num_to_name(midi_note_number as u32);
-    dest.push(format!("{} {}.wav", name.trim(), note_name));
+    // let note_name = zodak::note_num_to_name(midi_note_number as u32);
+    // dest.push(format!("{} {}.wav", name.trim(), note_name));
+
+    dest.push(wav.file_name(name));
 
     // println!("writing wav: {:?}", dest);
 

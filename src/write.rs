@@ -9,7 +9,7 @@ use padded_size; // implement
 
 // note: should really build these up in memory first then flush to file, safer and easier to calculate sizes.
 impl WavFile {
-    pub fn write(mut writer: File, wav: WavFile) -> Result<(), Error> {
+    pub fn write(mut writer: File, wav: &mut WavFile) -> Result<(), Error> {
 
         // RIFF, WAVE, FMT, DATA chunks
         writer.write(b"RIFF")?;                             // RIFF tag
@@ -41,7 +41,7 @@ impl WavFile {
 
         // SMPL chunk
         match wav.sampler_chunk {
-            Some(smpl) => {
+            Some(ref smpl) => {
                 // println!("Writing: SMPL, len: r:{} a:{}", smpl.len(), smpl.serialise().len());
                 writer.write(b"smpl")?;                         // tag
                 writer.write_u32::<LittleEndian>(smpl.len())?;  // chunk size

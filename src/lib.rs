@@ -52,6 +52,44 @@ impl WavFile {
             4_u32 + (self.cue_points.len() as u32 * 24)
         }
     }
+
+    pub fn file_name(&self, name:&str) -> String {
+        match self.sampler_chunk {
+            Some(ref s) => {
+                let note_name = ::note_num_to_name(s.midi_unity_note);
+                format!("{} {}.wav", name.trim(), note_name)
+            },
+            None => format!("{}.wav", name.trim())
+        }
+    }
+
+    pub fn pitch_keycenter(&self) -> Result<String, Error> {
+        match self.sampler_chunk {
+            Some(ref s) => Ok(::note_num_to_name(s.midi_unity_note)),
+            None => Err(Error::new(ErrorKind::Other, "called pitch_keycenter when sampler_chunk is not present"))
+        }
+    }
+
+    pub fn key_range(&self) -> Result<(String, String), Error> {
+        match self.instrument_chunk {
+            Some(ref i) => Ok(
+                ( ::note_num_to_name(i.low_note as u32), ::note_num_to_name(i.high_note as u32) )
+            ),
+            None => Err(Error::new(ErrorKind::Other, "called key_range when instrument_chunk is not present"))
+        }
+    }
+
+    pub fn loop_points(&self) -> Result<(u32, u32), Error> {
+        match self.sampler_chunk {
+            Some(ref s) => {
+                match s.sample_loops.first() {
+                    Some(l) => Ok(( l.start, l.end )),
+                    None => Err(Error::new(ErrorKind::Other, "called loop_points when sampler_chunk has no loops"))
+                }
+            },
+            None => Err(Error::new(ErrorKind::Other, "called loop_points when sampler_chunk is not present"))
+        }
+    }
 }
 
 pub struct FormatChunk {
