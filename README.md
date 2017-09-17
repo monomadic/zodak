@@ -22,11 +22,14 @@ At the moment, the front end command line interface is simple to use, but the un
 
 ## Usage:
 ```shell
-WAVEDIT v0.1.0
-using instrument mode.
+ZODAK v0.1.0 🐉🎹
 
 Usage:
-  wavedit <sourcedir> <destdir>
-  wavedit (-h | --help)
-  wavedit --version
+  zodak <sourcedir> <destdir>
+  zodak (-h | --help)
+  zodak --version
+
+Options:
+  -h --help     Show this screen.
+  --version     Show version.
   ```

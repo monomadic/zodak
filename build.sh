@@ -1,6 +1,6 @@
 #!/bin/sh
 
 cargo build --release --all
-cp target/release/wavedit ~/.bin/
+cp target/release/zodak ~/.bin/
 
-wavedit _input _output
+zodak _input _output

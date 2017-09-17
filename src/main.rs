@@ -1,11 +1,11 @@
 // https://sites.google.com/site/musicgapi/technical-documents/wav-file-format#inst
 
-extern crate wavedit;
+extern crate zodak;
 // extern crate glob;
 extern crate docopt;
 
-use wavedit::{ WavFile, InstrumentChunk };
-use wavedit::{ name_to_note_num, note_num_to_name };
+use zodak::{ WavFile, InstrumentChunk };
+use zodak::{ name_to_note_num, note_num_to_name };
 use docopt::Docopt;
 
 use std::io;
@@ -14,12 +14,12 @@ use std::fs::File;
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 const USAGE: &'static str = "
-wavedit
+ZODAK 🐉🎹
 
 Usage:
-  wavedit <sourcedir> <destdir>
-  wavedit (-h | --help)
-  wavedit --version
+  zodak <sourcedir> <destdir>
+  zodak (-h | --help)
+  zodak --version
 
 Options:
   -h --help     Show this screen.
@@ -38,7 +38,7 @@ fn main() {
     // println!("note_num_to_name A2(57): {:?}\n", note_num_to_name(57));
     // println!("note_num_to_name A#5(94): {:?}\n", note_num_to_name(94));
 
-    println!("WAVEDIT v{}", VERSION);
+    println!("ZODAK v{} 🐉🎹", VERSION);
     println!("using instrument mode.\n");
 
     let args = Docopt::new(USAGE)
@@ -100,7 +100,7 @@ pub fn process_wav(path:PathBuf, name:&str, mut dest:PathBuf) {
     let loop_end_str = get_input("loop end (0-4294967294): ");
     let loop_end:u32 = loop_end_str.trim().parse().unwrap();
 
-    use wavedit::{ SamplerChunk, SampleLoop, LoopType };
+    use zodak::{ SamplerChunk, SampleLoop, LoopType };
     wav.sampler_chunk = Some(SamplerChunk {
         manufacturer: 0,
         product: 0,
@@ -130,7 +130,7 @@ pub fn process_wav(path:PathBuf, name:&str, mut dest:PathBuf) {
         high_vel: 255,
     });
 
-    let note_name = wavedit::note_num_to_name(midi_note_number as u32);
+    let note_name = zodak::note_num_to_name(midi_note_number as u32);
     dest.push(format!("{} {}.wav", name.trim(), note_name));
 
     // println!("writing wav: {:?}", dest);
