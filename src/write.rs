@@ -11,67 +11,43 @@ use padded_size; // implement
 impl WavFile {
     pub fn write(mut writer: File, wav: WavFile) -> Result<(), Error> {
 
-        { // RIFF chunk
-            println!("Writing: RIFF, len: {}", wav.len());
-            writer.write(b"RIFF")?;                             // RIFF tag
-            writer.write_u32::<LittleEndian>(wav.len())?;       // file size (not including RIFF chunk of 8 bytes)
-            writer.write(b"WAVE")?;                             // RIFF type
+        // RIFF, WAVE, FMT, DATA chunks
+        writer.write(b"RIFF")?;                             // RIFF tag
+        writer.write_u32::<LittleEndian>(wav.len())?;       // file size (not including RIFF chunk of 8 bytes)
+        writer.write(b"WAVE")?;                             // RIFF type
+        writer.write_chunk(b"fmt ", wav.format_chunk.len(), &wav.format_chunk.data)?;
+        writer.write_chunk(b"data", wav.data_chunk.len(), &wav.data_chunk.data)?;
+
+        // INST chunk
+        match wav.instrument_chunk {
+            Some(inst) => {
+                writer.write_chunk(b"inst", 7, &inst.serialise())?;
+                // println!("Writing: INST, len: r:{} a:{}", 7, inst.serialise().len());
+            },
+            None => { println!("skipping: INST"); }
         }
 
-        { // FMT chunk
-            println!("Writing: FMT, len: {}", wav.format_chunk.len());
-            // writer.write(b"fmt ")?;                                         // tag
-            // writer.write_u32::<LittleEndian>(wav.format_chunk.len())?;      // chunk size (minus 8 bytes for header)
-            // writer.write(&wav.format_chunk.data)?;
-            writer.write_chunk(b"fmt ", wav.format_chunk.len(), &wav.format_chunk.data)?;
+        // CUE chunk
+        if let Some(cue) = wav.cue_points.first() {
+            let chunk = cue.serialise();
+
+            // println!("Writing: CUE, len: r:{} a:{}", wav.cue_chunk_len(), chunk.len());
+            writer.write(b"cue ")?;                                     // tag
+            writer.write_u32::<LittleEndian>(wav.cue_chunk_len())?;     // ChunkDataSize = 4 + (NumCuePoints * 24)
+            writer.write_u32::<LittleEndian>(1_u32)?;                   // number of cue points
+
+            writer.write(&chunk)?;
         }
 
-        { // DATA chunk
-            println!("Writing: DATA, len: {}:{}", wav.data_chunk.len(), ::padded_size(wav.data_chunk.len()));
-            // writer.write(b"data")?;                                         // tag
-            // writer.write_u32::<LittleEndian>(wav.data_chunk.len())?;        // chunk size (minus 8 bytes for header)
-            // writer.write(&wav.data_chunk.data)?;
-
-            writer.write_chunk(b"data", wav.data_chunk.len(), &wav.data_chunk.data)?;
-        }
-
-        { // INST chunk
-            match wav.instrument_chunk {
-                Some(inst) => {
-                    writer.write_chunk(b"inst", 7, &inst.serialise())?;
-                    println!("Writing: INST, len: r:{} a:{}", 7, inst.serialise().len());
-                    // writer.write(b"ltxt")?;                     // tag
-                    // writer.write_u32::<LittleEndian>(7)?;       // chunk size is always 7 for inst
-                    // writer.write(&inst.serialise())?;           // chunk data
-                },
-                None => { println!("Missing: INST"); }
-            }
-        }
-
-        { // CUE chunk
-            if let Some(cue) = wav.cue_points.first() {
-                let chunk = cue.serialise();
-
-                println!("Writing: CUE, len: r:{} a:{}", wav.cue_chunk_len(), chunk.len());
-                writer.write(b"cue ")?;                                     // tag
-                writer.write_u32::<LittleEndian>(wav.cue_chunk_len())?;     // ChunkDataSize = 4 + (NumCuePoints * 24)
-                writer.write_u32::<LittleEndian>(1_u32)?;                   // number of cue points
-
-                writer.write(&chunk)?;
-            } else { println!("Missing: CUE"); }
-        }
-
-        { // SMPL chunk
-            match wav.sampler_chunk {
-                Some(smpl) => {
-                    println!("{:?}", smpl.serialise());
-                    println!("Writing: SMPL, len: r:{} a:{}", smpl.len(), smpl.serialise().len());
-                    writer.write(b"smpl")?;                         // tag
-                    writer.write_u32::<LittleEndian>(smpl.len())?;  // chunk size
-                    writer.write(&smpl.serialise())?;               // chunk data
-                },
-                None => { println!("Missing: SMPL"); }
-            }
+        // SMPL chunk
+        match wav.sampler_chunk {
+            Some(smpl) => {
+                // println!("Writing: SMPL, len: r:{} a:{}", smpl.len(), smpl.serialise().len());
+                writer.write(b"smpl")?;                         // tag
+                writer.write_u32::<LittleEndian>(smpl.len())?;  // chunk size
+                writer.write(&smpl.serialise())?;               // chunk data
+            },
+            None => { println!("skipping: SMPL"); }
         }
 
         Ok(())
@@ -101,17 +77,6 @@ impl SamplerChunk {
 
 impl InstrumentChunk {
     pub fn serialise(&self) -> Vec<u8> {
-        println!("{:?}, {:?}", self, vec![
-            self.unshifted_note,
-            self.fine_tune,
-            self.gain,
-            self.low_note,
-            self.high_note,
-            self.low_vel,
-            self.high_vel,
-            0   // zero padding to 8 bytes
-        ]);
-
         vec![
             self.unshifted_note,
             self.fine_tune,
@@ -133,8 +98,6 @@ impl CuePoint {
         LittleEndian::write_u32_into(&vec![
             self.id, self.position, self.data_chunk_id, self.chunk_start, self.block_start, self.sample_offset
         ], &mut chunk);
-
-        println!("cue serialised {:?}\n{:?}", self, chunk);
 
         chunk
     }

@@ -75,21 +75,21 @@ pub fn process_wav(path:PathBuf, name:&str, mut dest:PathBuf) {
 
     let midi_note_number = get_input("midi unity note (C0-G8): ");
     let midi_note_number = name_to_note_num(&midi_note_number);
-    println!("using midi note number: {:?}", midi_note_number);
+    // println!("using midi note number: {:?}", midi_note_number);
 
     // let midi_note = get_input("midi unity note (C0-G8): ");
     // let midi_note_number:u8 = midi_note.parse().unwrap();
 
     let midi_low_note_number = get_input("midi low note (C0-G8): ");
     let midi_low_note_number = name_to_note_num(&midi_low_note_number);
-    println!("using midi note number: {:?}", midi_low_note_number);
+    // println!("using midi note number: {:?}", midi_low_note_number);
 
     // let midi_low_note = get_input("midi low note (0-255): ");
     // let midi_low_note_number:u8 = midi_low_note.parse().unwrap();
 
     let midi_high_note_number = get_input("midi high note (C0-G8): ");
     let midi_high_note_number = name_to_note_num(&midi_high_note_number);
-    println!("using midi note number: {:?}", midi_high_note_number);
+    // println!("using midi note number: {:?}", midi_high_note_number);
 
     // let midi_high_note = get_input("midi high note (0-255): ");
     // let midi_high_note_number:u8 = midi_high_note.parse().unwrap();
@@ -133,7 +133,7 @@ pub fn process_wav(path:PathBuf, name:&str, mut dest:PathBuf) {
     let note_name = wavedit::note_num_to_name(midi_note_number as u32);
     dest.push(format!("{} {}.wav", name.trim(), note_name));
 
-    println!("writing wav: {:?}", dest);
+    // println!("writing wav: {:?}", dest);
 
     let writer = File::create(dest).expect("output wav to create correctly.");
     let _ = WavFile::write(writer, wav);
