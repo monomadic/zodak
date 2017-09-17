@@ -17,7 +17,7 @@ The goal is to build a series of tools that will free us from any proprietary fo
 
 At the moment, the front end command line interface is simple to use, but the underlying tool has a lot of functionality not exposed by it (just wanted to keep the front end simple for now).
 
-<img src="tinyui-logo.png" alt="go-staticgen" height="75">
+<img src="screenshot.png" alt="screenshot" height="75">
 
 Above: drag and drop your wav files in and they'll automap and configure as above.
 
