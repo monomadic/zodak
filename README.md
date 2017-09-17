@@ -25,8 +25,6 @@ At the moment, the front end command line interface is simple to use, but the un
 WAVEDIT v0.1.0
 using instrument mode.
 
-Invalid arguments.
-
 Usage:
   wavedit <sourcedir> <destdir>
   wavedit (-h | --help)
