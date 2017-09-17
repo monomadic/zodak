@@ -73,8 +73,6 @@ pub fn process_wav(path:PathBuf, name:&str, mut dest:PathBuf) {
     let reader = File::open(path).expect("input wav to read correctly.");
     let mut wav = WavFile::read(reader).expect("wav to parse correctly");
 
-    println!("");
-
     let midi_note_number = get_input("midi unity note (C0-G8): ");
     let midi_note_number = name_to_note_num(&midi_note_number);
     println!("using midi note number: {:?}", midi_note_number);

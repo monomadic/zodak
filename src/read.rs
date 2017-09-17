@@ -26,7 +26,7 @@ impl WavFile {
 
         // get file length (minus RIFF header)
         let file_len = reader.read_u32::<LittleEndian>()?;
-        println!("Filesize: {:?}", file_len);
+        // println!("Filesize: {:?}", file_len);
         
         {   // read WAVE header 
             let mut tag=[0u8;4]; // header tag
@@ -54,7 +54,7 @@ impl WavFile {
                     format_chunk = Some(FormatChunk{
                         data: chunk.into_inner(),
                     });
-                    println!("Read: FMT length: {:?}", chunk_len);
+                    // println!("Read: FMT length: {:?}", chunk_len);
                 },
                 b"data" | b"DATA" => {
                     let mut data = chunk.into_inner();
@@ -66,7 +66,7 @@ impl WavFile {
                         println!("padding complete, new size: {:?}", data.len());
                     }
                     
-                    println!("Read: DATA length: {} {}", chunk_len, data.len());
+                    // println!("Read: DATA length: {} {}", chunk_len, data.len());
                     data_chunk = Some(DataChunk{
                         data: data,
                     });
