@@ -19,3 +19,16 @@ At the moment, the front end command line interface is simple to use, but the un
 - a 'library' mode, which audits your entire library for problems and keeps all of your instruments organised.
 - single shot mode
 - drum kit mode
+
+## Usage:
+```shell
+WAVEDIT v0.1.0
+using instrument mode.
+
+Invalid arguments.
+
+Usage:
+  wavedit <sourcedir> <destdir>
+  wavedit (-h | --help)
+  wavedit --version
+  ```
