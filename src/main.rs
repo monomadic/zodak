@@ -69,7 +69,7 @@ fn main() {
 
         match path.extension().and_then(|oss| oss.to_str()) {
             Some("wav") => {
-                println!("\n{:?}", path.file_name());
+                println!("\n{}", path.file_name().unwrap());
                 let reader = File::open(path).expect("input wav to read correctly.");
                 let mut wav = WavFile::read(reader).expect("wav to parse correctly");
 
