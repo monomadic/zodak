@@ -17,13 +17,15 @@ const USAGE: &'static str = "
 ZODAK 🐉🎹
 
 Usage:
-  zodak <sourcedir> <destdir>
+  zodak <sourcedir> <destdir> [--start=<n>] [--end=<n>]
   zodak (-h | --help)
   zodak --version
 
 Options:
   -h --help     Show this screen.
   --version     Show version.
+  --start=<n>   override loop start for all files processed
+  --end=<n>     override loop end for all files processed
 ";
 
 fn main() {
@@ -50,6 +52,9 @@ fn main() {
     let src = args.get_vec("<sourcedir>");
     let dest = args.get_vec("<destdir>");
 
+    let arg_loop_start = args.get_str("--start");
+    let arg_loop_end = args.get_str("--end");
+
     let instrument_name_default = dir_as_string(src[0]);
     let mut instrument_name = get_input(format!("instrument name [{}]: ", instrument_name_default).as_str());
 
@@ -69,11 +74,11 @@ fn main() {
 
         match path.extension().and_then(|oss| oss.to_str()) {
             Some("wav") => {
-                println!("\n{}", path.file_name().unwrap());
+                println!("\n{}", path.file_name().unwrap().to_string_lossy());
                 let reader = File::open(path).expect("input wav to read correctly.");
                 let mut wav = WavFile::read(reader).expect("wav to parse correctly");
 
-                process_wav(&mut wav, instrument_name.as_str(), &mut dest_path);
+                process_wav(&mut wav, instrument_name.as_str(), &mut dest_path, arg_loop_start.to_string(), arg_loop_end.to_string());
                 append_sample_to_sfz(&mut sfz, &wav, &dest_path);
             },
             _ => (),
@@ -93,7 +98,7 @@ pub fn append_sample_to_sfz(sfz:&mut File, wav:&WavFile, mut dest:&PathBuf) {
     writeln!(sfz, "loop_mode=loop_continuous loop_start={} loop_end={}\n", loop_points.0, loop_points.1);
 }
 
-pub fn process_wav(wav:&mut WavFile, name:&str, mut dest:&mut PathBuf) {
+pub fn process_wav(wav:&mut WavFile, name:&str, mut dest:&mut PathBuf, mut arg_loop_start:String, mut arg_loop_end:String) {
     // let reader = File::open(path).expect("input wav to read correctly.");
     // let mut wav = WavFile::read(reader).expect("wav to parse correctly");
 
@@ -118,11 +123,15 @@ pub fn process_wav(wav:&mut WavFile, name:&str, mut dest:&mut PathBuf) {
     // let midi_high_note = get_input("midi high note (0-255): ");
     // let midi_high_note_number:u8 = midi_high_note.parse().unwrap();
 
-    let loop_start_str = get_input("loop start (0-4294967294): ");
-    let loop_start:u32 = loop_start_str.trim().parse().unwrap();
+    if arg_loop_start == "" {
+        arg_loop_start = get_input("loop start (0-4294967294): ");
+    };
+    let loop_start:u32 = arg_loop_start.trim().parse().unwrap();
 
-    let loop_end_str = get_input("loop end (0-4294967294): ");
-    let loop_end:u32 = loop_end_str.trim().parse().unwrap();
+    if arg_loop_end == "" {
+        arg_loop_end = get_input("loop end (0-4294967294): ");
+    };
+    let loop_end:u32 = arg_loop_end.trim().parse().unwrap();
 
     use zodak::{ SamplerChunk, SampleLoop, LoopType };
     wav.sampler_chunk = Some(SamplerChunk {
