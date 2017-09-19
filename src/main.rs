@@ -69,6 +69,7 @@ fn main() {
 
         match path.extension().and_then(|oss| oss.to_str()) {
             Some("wav") => {
+                println!("\n{:?}", path.file_name());
                 let reader = File::open(path).expect("input wav to read correctly.");
                 let mut wav = WavFile::read(reader).expect("wav to parse correctly");
 
@@ -93,8 +94,6 @@ pub fn append_sample_to_sfz(sfz:&mut File, wav:&WavFile, mut dest:&PathBuf) {
 }
 
 pub fn process_wav(wav:&mut WavFile, name:&str, mut dest:&mut PathBuf) {
-    println!("\n{:?}", dest.file_name());
-
     // let reader = File::open(path).expect("input wav to read correctly.");
     // let mut wav = WavFile::read(reader).expect("wav to parse correctly");
 
