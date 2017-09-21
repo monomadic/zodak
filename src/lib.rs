@@ -12,6 +12,13 @@ pub use write::*;
 mod read;
 pub use read::*;
 
+pub trait RiffChunk {
+    fn header(&self) -> String;
+    fn len(&self) -> u32;
+    fn serialise(&self) -> Vec<u8>;
+    fn print(&self);
+}
+
 pub struct WavFile {
     pub format_chunk: FormatChunk,
     pub data_chunk: DataChunk,

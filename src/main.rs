@@ -17,16 +17,54 @@ const USAGE: &'static str = "
 ZODAK 🐉🎹
 
 Usage:
-  zodak <sourcedir> <destdir> [--start=<n>] [--end=<n>]
+  zodak tag <sourcedir> <destdir> [--start=<n>] [--end=<n>]
+  zodak print <sourcedir>
   zodak (-h | --help)
   zodak --version
 
 Options:
-  -h --help     Show this screen.
-  --version     Show version.
-  --start=<n>   override loop start for all files processed
-  --end=<n>     override loop end for all files processed
+  -h --help             Show this screen.
+  --version             Show version.
+  --start=<n>           Override loop start for all files processed
+  --end=<n>             Override loop end for all files processed
+  --overwrite           Prompt to overwrite tags already within the WAV source (default=off)
+  --velocity            Prompt for a velocity range for each sample
+  --sfz                 Output an SFZ file with data from the input files
+  --sfzinput=<file>     Use an SFZ as an override for all tags
+  --readonly
 ";
+
+fn read_directory(path:PathBuf) -> Vec<WavFile> {
+    let mut wavs = Vec::new();
+
+    for file in read_directory_paths(&path).expect("dir to have files") {
+        match file.extension().and_then(|oss| oss.to_str()) {
+            Some("wav") => {
+                let reader = File::open(file).expect("input wav to read correctly.");
+                wavs.push(WavFile::read(reader).expect("wav to parse correctly"));
+            },
+            _ => ()
+        }
+    }
+
+    wavs
+}
+
+// use std::fmt;
+// impl fmt::Display for WavFile {
+//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+//         write!(f, "WAVE")
+//     }
+// }
+
+fn print_wav(wav:WavFile) {
+    println!("=========");
+    println!("wav!");
+    println!("- FMT: (len={})", wav.format_chunk.len());
+    println!("- DATA: (len={})", wav.data_chunk.len());
+    println!("- SMPL: {:?})", wav.sampler_chunk);
+    println!("=========");
+}
 
 fn main() {
     // println!("name_to_note_num C-2(0): {:?}\n", name_to_note_num("C-2"));
@@ -51,6 +89,17 @@ fn main() {
 
     let src = args.get_vec("<sourcedir>");
     let dest = args.get_vec("<destdir>");
+
+    let print_option = args.find("print").unwrap().as_bool();
+
+    if print_option {
+        println!("printing");
+
+        let wavs = read_directory(Path::new(src[0]).to_path_buf());
+        for wav in wavs { print_wav(wav) }
+    }
+
+    // let read_only = args.find("--readonly").unwrap().as_bool();
 
     let arg_loop_start = args.get_str("--start");
     let arg_loop_end = args.get_str("--end");
@@ -84,6 +133,7 @@ fn main() {
             _ => (),
         }
     }
+
 }
 
 pub fn append_sample_to_sfz(sfz:&mut File, wav:&WavFile, mut dest:&PathBuf) {

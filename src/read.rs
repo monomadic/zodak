@@ -161,7 +161,43 @@ impl WavFile {
                         high_vel: chunk.read_u8()?,
                     });
                     println!("Read: INST length: {:?}", chunk_len);
-                }, // this should be ltxt
+                },
+                b"acid" | b"ACID" => { // Acid loop / acidized wav
+                    println!("ACID");
+
+                    // ** 4 bytes (int)     type of file:
+                    // some combinations qualify as "errors"
+                    // 0x01 On: One Shot         Off: Loop
+                    // 0x02 On: Root note is Set Off: No root
+                    // 0x04 On: Stretch is On,   Off: Strech is OFF
+                    // 0x08 On: Disk Based       Off: Ram based
+                    // 0x10 On: ??????????       Off: ????????? (Acidizer puts that ON)
+                    println!("flags: {:?}", chunk.read_u32::<LittleEndian>()?);
+
+                    // 2 bytes (short)
+                    // if type 0x10 is OFF : [C,C#,(...),B] -> [0x30 to 0x3B]
+                    // if type 0x10 is ON  : [C,C#,(...),B] -> [0x3C to 0x47]
+                    println!("root note: {:?}", chunk.read_u16::<LittleEndian>()?);
+
+                    // 2 bytes (short)
+                    println!("number of beats: {:?}", chunk.read_u16::<LittleEndian>()?);
+
+                    // 4 bytes (float)
+                    println!("number of beats: {:?}", chunk.read_u32::<LittleEndian>()?);
+
+                    // 4 bytes (int)
+                    println!("number of beats: {:?}", chunk.read_u32::<LittleEndian>()?);
+
+                    // 2 bytes (short) (always 4)
+                    println!("meter denominator: {:?}", chunk.read_u16::<LittleEndian>()?);
+
+                    // 2 bytes (short) (always 4)
+                    println!("meter numerator: {:?}", chunk.read_u16::<LittleEndian>()?);
+
+                    // 4 bytes (float)
+                    println!("tempo: {:?}", chunk.read_f32::<LittleEndian>()?);
+
+                },
                 _ => { println!("WARNING: unknown chunk: {:?}, length: {:?}", ::std::str::from_utf8(&tag).unwrap(), chunk_len); }
             }
         }
