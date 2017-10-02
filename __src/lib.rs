@@ -12,6 +12,7 @@ pub use write::*;
 mod read;
 pub use read::*;
 
+// NOTE: future trait, not used yet
 pub trait RiffChunk {
     fn header(&self) -> String;
     fn len(&self) -> u32;

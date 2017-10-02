@@ -1,0 +1,12 @@
+[package]
+name = "zodak"
+version = "0.1.1"
+authors = ["Rob Saunders <rob@wearebrandnew.com>"]
+
+[dependencies]
+docopt = "0.8"
+wavtag = { path = "../wavtag" }
+
+[[bin]]
+name = "zodak"
+doc = false
