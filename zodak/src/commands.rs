@@ -15,20 +15,39 @@ pub fn run() -> io::Result<()> {
 
     println!("🎹  ZODAK v{}", ::VERSION);
 
-    let arg_read_only = args.get_str("--read_only");
+    // let arg_read_only = args.get_str("--read_only");
 
     if args.get_bool("print") {
-        let sourcedir = args.get_vec("<sourcedir>");
+        let sourcedir = args.get_vec("<sourcedir>")[0];
 
-        match read_directory(Path::new(sourcedir[0]).to_path_buf()) {
+        match read_directory(Path::new(sourcedir).to_path_buf()) {
             Ok(wavs) => {
                 for wav in wavs { print_wav(wav) }
             },
             Err(_) => println!("No file or directory.") // todo: properly unwrap error message.
-        }
+        }        
+    }
 
-        // let wavs = read_directory(Path::new(sourcedir[0]).to_path_buf())?;
-        
+    if args.get_bool("tag") {
+        let sourcedir = args.get_vec("<sourcedir>")[0];
+        let destdir = args.get_vec("<destdir>")[0];
+
+        match read_directory(Path::new(sourcedir).to_path_buf()) {
+            Ok(wavs) => {
+                for wav in wavs {
+                    println!("{}", wav.filename);
+
+                    let arg_inst = args.get_bool("--inst");
+
+                    if arg_inst {
+                        println!("tagging instrument");
+                    }
+
+
+                }
+            },
+            Err(_) => println!("No file or directory.") // todo: properly unwrap error message.
+        }
     }
 
     Ok(())

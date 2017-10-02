@@ -8,7 +8,7 @@ pub const USAGE: &'static str = "
 🎹  ZODAK
 
 Usage:
-  zodak tag <sourcedir> <destdir> [--start=<n>] [--end=<n>]
+  zodak tag <sourcedir> <destdir> [--start=<n>] [--end=<n>] [--inst]
   zodak print <sourcedir>
   zodak (-h | --help)
   zodak --version
@@ -23,6 +23,7 @@ Options:
   --sfz                 Output an SFZ file with data from the input files
   --sfzinput=<file>     Use an SFZ as an override for all tags
   --readonly
+  --inst                Add or edit instrument chunk
 ";
 
 fn main() {
