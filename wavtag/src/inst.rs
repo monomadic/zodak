@@ -38,7 +38,17 @@ impl Default for InstrumentChunk {
 }
 
 impl InstrumentChunk {
-    // pub fn from_chunk(chunk: RiffChunk) -> InstrumentChunk {}
+    pub fn from_chunk(chunk: &RiffChunk) -> InstrumentChunk {
+        InstrumentChunk {
+            unshifted_note: 0,
+            fine_tune: 0,
+            gain: 0,
+            low_note: 0,
+            high_note: 0,
+            low_vel: 0,
+            high_vel: 0,
+        }
+    }
 
     pub fn serialise(&self) -> Vec<u8> {
         vec![
@@ -57,9 +67,15 @@ impl InstrumentChunk {
 impl RiffFile {
     pub fn get_instrument_chunk(&self) -> InstrumentChunk {
         match self.find_chunk_by_type(ChunkType::Instrument) {
-            _ => InstrumentChunk::default(),
+            Some(c) => InstrumentChunk::from_chunk(c),
+            None => InstrumentChunk::default(),
         }
     }
 
-    pub fn set_instrument_chunk(&mut self, chunk: InstrumentChunk) {}
+    pub fn set_instrument_chunk(&mut self, chunk: InstrumentChunk) {
+        self.add_or_replace_chunk_by_type(RiffChunk {
+            header: ChunkType::Instrument,
+            data: chunk.serialise(),
+        });
+    }
 }

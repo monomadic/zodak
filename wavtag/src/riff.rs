@@ -14,7 +14,7 @@ use std::fs;
 
 pub struct RiffChunk {
     pub header: ChunkType,
-    data: Vec<u8>,
+    pub data: Vec<u8>,
 }
 
 impl RiffChunk {
@@ -59,8 +59,25 @@ impl ChunkType {
             ChunkType::Sampler => b"smpl",
             ChunkType::Instrument => b"ltxt",
             ChunkType::Acid => b"acid",
-            ChunkType::Unknown(tag) => b"errr", // fix this
+            ChunkType::Unknown(_) => b"errr", // TODO fix this
         }
+    }
+}
+
+fn header_to_rifftype(tag: [u8;4]) -> ChunkType {
+    match &tag {
+        b"fmt " | b"FMT " => ChunkType::Format,
+        b"data" | b"DATA" => ChunkType::Data,
+        b"fact" | b"FACT" => ChunkType::Fact,
+        b"cue " | b"CUE " => ChunkType::Cue,
+        b"plst" | b"PLST" => ChunkType::Playlist,
+        b"list" | b"LIST" => ChunkType::List,
+        b"labl" | b"LABL" => ChunkType::Label,
+        b"note" | b"NOTE" => ChunkType::Note,
+        b"smpl" | b"SMPL" => ChunkType::Sampler,
+        b"ltxt" | b"LTXT" | b"INST" | b"inst" => ChunkType::Instrument,
+        b"acid" | b"ACID" => ChunkType::Acid,
+        _ => ChunkType::Unknown(format!("{:?}", tag)),
     }
 }
 
@@ -87,8 +104,7 @@ impl RiffFile {
             }
         }
 
-        // get file length (minus RIFF header).
-        let file_len = reader.read_u32::<LittleEndian>()?;
+        let _ = reader.read_u32::<LittleEndian>()?; // get file length (minus RIFF header).
 
         {   // read WAVE header 
             let mut tag=[0u8;4]; // header tag
@@ -110,7 +126,7 @@ impl RiffFile {
             }
 
             let chunk_len = reader.read_u32::<LittleEndian>()?; // size
-            let mut chunk = Cursor::new(::utils::read_bytes(&mut reader, chunk_len as usize)?);
+            let chunk = Cursor::new(::utils::read_bytes(&mut reader, chunk_len as usize)?);
 
             let mut data = chunk.into_inner();
             if ::utils::padded_size(chunk_len) != chunk_len {
@@ -163,21 +179,6 @@ impl RiffFile {
     pub fn find_chunk_by_type(&self, chunktype: ChunkType) -> Option<&RiffChunk> {
         self.chunks.iter().find(|c| c.header == chunktype)
     }
-}
 
-fn header_to_rifftype(tag: [u8;4]) -> ChunkType {
-    match &tag {
-        b"fmt " | b"FMT " => ChunkType::Format,
-        b"data" | b"DATA" => ChunkType::Data,
-        b"fact" | b"FACT" => ChunkType::Fact,
-        b"cue " | b"CUE " => ChunkType::Cue,
-        b"plst" | b"PLST" => ChunkType::Playlist,
-        b"list" | b"LIST" => ChunkType::List,
-        b"labl" | b"LABL" => ChunkType::Label,
-        b"note" | b"NOTE" => ChunkType::Note,
-        b"smpl" | b"SMPL" => ChunkType::Sampler,
-        b"ltxt" | b"LTXT" | b"INST" | b"inst" => ChunkType::Instrument,
-        b"acid" | b"ACID" => ChunkType::Acid,
-        _ => ChunkType::Unknown(format!("{:?}", tag)),
-    }
+    pub fn add_or_replace_chunk_by_type(&self, chunk: RiffChunk) {}
 }
