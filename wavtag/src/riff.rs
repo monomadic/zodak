@@ -1,7 +1,7 @@
-use byteorder::{ ReadBytesExt, LittleEndian };
+use byteorder::{ ReadBytesExt, WriteBytesExt, LittleEndian };
 
 use std::io;
-use std::io::{ Cursor, Read, Error, ErrorKind };
+use std::io::{ Cursor, Read, Write, Error, ErrorKind };
 use std::fs;
 
 // pub trait RiffChunk {
@@ -15,6 +15,12 @@ use std::fs;
 pub struct RiffChunk {
     pub header: ChunkType,
     data: Vec<u8>,
+}
+
+impl RiffChunk {
+    pub fn len(&self) -> usize {
+        self.data.len()
+    }
 }
 
 // impl RiffChunk {
@@ -39,6 +45,25 @@ pub enum ChunkType {
     Unknown(String),
 }
 
+impl ChunkType {
+    pub fn to_tag(self) -> &'static [u8;4] {
+        match self {
+            ChunkType::Format => b"fmt ",
+            ChunkType::Data => b"data",
+            ChunkType::Fact => b"fact",
+            ChunkType::Cue => b"cue ",
+            ChunkType::Playlist => b"plst",
+            ChunkType::List => b"list",
+            ChunkType::Label => b"labl",
+            ChunkType::Note => b"note",
+            ChunkType::Sampler => b"smpl",
+            ChunkType::Instrument => b"ltxt",
+            ChunkType::Acid => b"acid",
+            ChunkType::Unknown(tag) => b"errr", // fix this
+        }
+    }
+}
+
 pub struct RiffFile {
     pub filename: String,
     pub chunks: Vec<RiffChunk>,
@@ -46,7 +71,9 @@ pub struct RiffFile {
 
 impl RiffFile {
     pub fn len(&self) -> usize {
-        self.chunks.len()
+        // (4 for WAVE header chunk, RIFF chunk not included)
+        4 + self.chunks.iter()
+            .fold(0, |acc, &ref chunk| acc + ::utils::padded_size(chunk.len() as u32) as usize + 8) // add 8 bytes for each chunks header
     }
     
     pub fn read(mut reader: fs::File, filename: String) -> Result<Self, io::Error> {
@@ -83,13 +110,13 @@ impl RiffFile {
             }
 
             let chunk_len = reader.read_u32::<LittleEndian>()?; // size
-            let mut chunk = Cursor::new(::read_bytes(&mut reader, chunk_len as usize)?);
+            let mut chunk = Cursor::new(::utils::read_bytes(&mut reader, chunk_len as usize)?);
 
             let mut data = chunk.into_inner();
-            if ::padded_size(chunk_len) != chunk_len {
+            if ::utils::padded_size(chunk_len) != chunk_len {
 
-                println!("padding required for incorrect chunk size: {:?}, should be {:?}", chunk_len, ::padded_size(chunk_len));
-                ::pad_vec(&mut data, (::padded_size(chunk_len) - chunk_len) as usize);
+                println!("padding required for incorrect chunk size: {:?}, should be {:?}", chunk_len, ::utils::padded_size(chunk_len));
+                ::utils::pad_vec(&mut data, (::utils::padded_size(chunk_len) - chunk_len) as usize);
 
                 println!("padding complete, new size: {:?}", data.len());
             }
@@ -102,8 +129,39 @@ impl RiffFile {
         })
     }
 
-    pub fn find_chunk_by_type(&self, _: ChunkType) -> Option<RiffChunk> {
-        None
+    pub fn validate(&self) -> Result<(), Error> {
+        Ok(())
+    }
+
+    pub fn write(&self, mut writer: fs::File) -> Result<(), Error> {
+        self.validate()?;
+
+        // RIFF, WAVE, FMT, DATA chunks
+        writer.write(b"RIFF")?;                                 // RIFF tag
+        writer.write_u32::<LittleEndian>(self.len() as u32)?;   // file size (not including RIFF chunk of 8 bytes)
+        writer.write(b"WAVE")?;
+
+        for chunk in self.chunks.iter() {
+            let header = chunk.header.clone();
+            writer.write(header.to_tag())?;
+            writer.write_u32::<LittleEndian>(chunk.len() as u32)?;
+            writer.write(&chunk.data)?;
+        };
+
+        // for ref chunk in self.chunks.into_iter() {
+        //     let tag = chunk.header.to_tag();
+        //     // writer.write(chunk.header.to_tag())?;
+
+        // }
+
+        // writer.write_chunk(b"fmt ", self.format_chunk.len(), &self.format_chunk.data)?;
+        // writer.write_chunk(b"data", wav.data_chunk.len(), &wav.data_chunk.data)?;
+
+        Ok(())
+    }
+
+    pub fn find_chunk_by_type(&self, chunktype: ChunkType) -> Option<&RiffChunk> {
+        self.chunks.iter().find(|c| c.header == chunktype)
     }
 }
 

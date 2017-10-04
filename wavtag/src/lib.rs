@@ -3,7 +3,6 @@ extern crate byteorder;
 mod riff;
 pub use riff::*;
 
-mod utils;
-pub use utils::*;
+pub mod utils;
 
 mod inst;
