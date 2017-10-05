@@ -57,7 +57,7 @@ impl ChunkType {
             ChunkType::Label => b"labl",
             ChunkType::Note => b"note",
             ChunkType::Sampler => b"smpl",
-            ChunkType::Instrument => b"ltxt",
+            ChunkType::Instrument => b"inst",
             ChunkType::Acid => b"acid",
             ChunkType::Unknown(_) => b"errr", // TODO fix this
         }
@@ -131,7 +131,7 @@ impl RiffFile {
             let mut data = chunk.into_inner();
             if ::utils::padded_size(chunk_len) != chunk_len {
 
-                println!("padding required for incorrect chunk size: {:?}, should be {:?}", chunk_len, ::utils::padded_size(chunk_len));
+                println!("detected invalid/unpadded chunk size: {:?}, should be {:?}", chunk_len, ::utils::padded_size(chunk_len));
                 ::utils::pad_vec(&mut data, (::utils::padded_size(chunk_len) - chunk_len) as usize);
 
                 println!("padding complete, new size: {:?}", data.len());

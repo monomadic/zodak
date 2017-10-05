@@ -69,7 +69,7 @@ impl InstrumentChunk {
             self.high_note,
             self.low_vel,
             self.high_vel,
-            0   // zero padding to 8 bytes
+            // 0   // zero padding to 8 bytes
         ]
     }
 }
