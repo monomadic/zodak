@@ -1,4 +1,4 @@
-use wavtag::{ RiffFile, ChunkType, InstrumentChunk };
+use wavtag::{ RiffFile, ChunkType, InstrumentChunk, SamplerChunk };
 use wavtag::utils::*;
 // use wavtag::{ name_to_note_num, note_num_to_name };
 use docopt::Docopt;
@@ -44,22 +44,32 @@ pub fn run() -> io::Result<()> {
                 for mut wav in wavs {
                     println!("{}", wav.filename);
 
-                    let arg_inst = args.get_bool("--inst");
-                    let arg_vel = args.get_bool("--vel");
+                    // get the unity note first as it's used in both chunks
+                    let unity_note = if args.get_bool("--inst") || args.get_bool("--smpl") {
+                        name_to_note_num(&get_input("midi unity note (C0-G8): "))
+                    } else { 0 };
 
-                    if arg_inst {
+                    if args.get_bool("--inst") {
                         let mut inst = wav.get_instrument_chunk();
 
-                        inst.unshifted_note = name_to_note_num(&get_input("midi unity note (C0-G8): "));
+                        inst.unshifted_note = unity_note;
                         inst.low_note = name_to_note_num(&get_input("midi low note (C0-G8): "));
                         inst.high_note = name_to_note_num(&get_input("midi high note (C0-G8): "));
 
-                        if arg_vel {
+                        if args.get_bool("--vel") {
                             inst.low_vel = name_to_note_num(&get_input("midi low vel (C0-G8): "));
                             inst.high_vel = name_to_note_num(&get_input("midi high vel (C0-G8): "));
                         }
 
                         wav.set_instrument_chunk(inst);
+                    }
+
+                    if args.get_bool("--smpl") {
+                        let mut smpl = wav.get_sampler_chunk();
+
+                        smpl.midi_unity_note = unity_note as u32;
+
+                        wav.set_sampler_chunk(smpl);
                     }
 
                     let dest = format!("{}", file_name(&wav, instrument_name.as_str()));
@@ -106,7 +116,7 @@ fn read_directory(path:PathBuf) -> io::Result<Vec<RiffFile>>  {
 }
 
 fn print_wav(wav:RiffFile) {
-    println!("{}, chunks: {:?}", wav.filename, wav.len());
+    println!("{}, chunks: {:?}", wav.filename, wav.chunks.len());
     // for chunk in wav.chunks {
     //     print!(" [{:?}]", chunk.header);
     // }
@@ -117,7 +127,12 @@ fn print_wav(wav:RiffFile) {
             ChunkType::Instrument => {
                 if let Ok(inst) = InstrumentChunk::from_chunk(&chunk) {
                     println!("{:?}", inst);
-                }
+                } else { println!("broken inst chunk detected."); }
+            },
+            ChunkType::Sampler => {
+                if let Ok(smpl) = SamplerChunk::from_chunk(&chunk) {
+                    println!("{:?}", smpl);
+                } else { println!("broken smpl chunk detected."); }
             },
             _ => println!("other {:?}", chunk.header),
         }

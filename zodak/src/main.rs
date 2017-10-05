@@ -8,7 +8,7 @@ pub const USAGE: &'static str = "
 🎹  ZODAK
 
 Usage:
-  zodak tag <sourcedir> <destdir> [--start=<n>] [--end=<n>] [--inst]
+  zodak tag <sourcedir> <destdir> [--start=<n>] [--end=<n>] [--inst] [--smpl]
   zodak print <sourcedir>
   zodak (-h | --help)
   zodak --version

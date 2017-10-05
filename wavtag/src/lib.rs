@@ -5,5 +5,5 @@ pub use riff::*;
 
 pub mod utils;
 
-mod inst;
-pub use inst::InstrumentChunk;
+mod chunks;
+pub use chunks::*;

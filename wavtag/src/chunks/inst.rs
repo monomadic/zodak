@@ -1,7 +1,7 @@
 use byteorder::{ ReadBytesExt };
 
 use std::io;
-use std::io::{ Cursor };
+use std::io::{ Cursor, Error, ErrorKind };
 
 use { RiffChunk, ChunkType, RiffFile };
 
@@ -44,6 +44,9 @@ impl Default for InstrumentChunk {
 
 impl InstrumentChunk {
     pub fn from_chunk(chunk: &RiffChunk) -> Result<Self, io::Error> {
+        if chunk.header != ChunkType::Instrument {
+            return Err(Error::new(ErrorKind::Other, "attempted from_chunk on non-instrument chunk")) };
+
         let mut data = Cursor::new(&chunk.data);
 
         Ok(InstrumentChunk {
