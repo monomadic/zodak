@@ -137,8 +137,8 @@ impl SamplerChunk {
 
 impl RiffFile {
     pub fn get_sampler_chunk(&self) -> SamplerChunk {
-        match self.find_chunk_by_type(ChunkType::Instrument) {
-            Some(c) => SamplerChunk::from_chunk(c).expect("chunk to be a valid instrument chunk"),
+        match self.find_chunk_by_type(ChunkType::Sampler) {
+            Some(c) => SamplerChunk::from_chunk(c).expect("chunk to be a valid sampler chunk"),
             None => SamplerChunk::default(),
         }
     }
