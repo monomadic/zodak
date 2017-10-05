@@ -31,13 +31,13 @@ pub struct InstrumentChunk {
 impl Default for InstrumentChunk {
     fn default() -> Self {
         InstrumentChunk {
-            unshifted_note: 0,
+            unshifted_note: 60,
             fine_tune: 0,
             gain: 0,
             low_note: 0,
-            high_note: 0,
+            high_note: 127,
             low_vel: 0,
-            high_vel: 0,
+            high_vel: 127,
         }
     }
 }
