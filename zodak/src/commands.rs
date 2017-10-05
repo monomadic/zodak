@@ -1,4 +1,4 @@
-use wavtag::{ RiffFile, ChunkType };
+use wavtag::{ RiffFile, ChunkType, InstrumentChunk };
 use wavtag::utils::*;
 // use wavtag::{ name_to_note_num, note_num_to_name };
 use docopt::Docopt;
@@ -45,14 +45,19 @@ pub fn run() -> io::Result<()> {
                     println!("{}", wav.filename);
 
                     let arg_inst = args.get_bool("--inst");
+                    let arg_vel = args.get_bool("--vel");
 
                     if arg_inst {
-                        println!("instrument chunk");
-
                         let mut inst = wav.get_instrument_chunk();
 
-                        let midi_note_number = get_input("midi unity note (C0-G8): ");
-                        inst.unshifted_note = name_to_note_num(&midi_note_number);
+                        inst.unshifted_note = name_to_note_num(&get_input("midi unity note (C0-G8): "));
+                        inst.low_note = name_to_note_num(&get_input("midi low note (C0-G8): "));
+                        inst.high_note = name_to_note_num(&get_input("midi high note (C0-G8): "));
+
+                        if arg_vel {
+                            inst.low_vel = name_to_note_num(&get_input("midi low vel (C0-G8): "));
+                            inst.high_vel = name_to_note_num(&get_input("midi high vel (C0-G8): "));
+                        }
 
                         wav.set_instrument_chunk(inst);
                     }
@@ -61,8 +66,8 @@ pub fn run() -> io::Result<()> {
                     println!("writing: {}", dest);
 
                     // TODO if not read only
-                    let mut writer = fs::File::create(dest).expect("output wav to create correctly.");
-                    wav.write(writer);
+                    let writer = fs::File::create(dest).expect("output wav to create correctly.");
+                    let _ = wav.write(writer);
 
                 }
             },
@@ -101,9 +106,22 @@ fn read_directory(path:PathBuf) -> io::Result<Vec<RiffFile>>  {
 }
 
 fn print_wav(wav:RiffFile) {
-    print!("{}, chunks: {:?}", wav.filename, wav.len());
+    println!("{}, chunks: {:?}", wav.filename, wav.len());
+    // for chunk in wav.chunks {
+    //     print!(" [{:?}]", chunk.header);
+    // }
+
     for chunk in wav.chunks {
-        print!(" [{:?}]", chunk.header);
+
+        match chunk.header {
+            ChunkType::Instrument => {
+                if let Ok(inst) = InstrumentChunk::from_chunk(&chunk) {
+                    println!("{:?}", inst);
+                }
+            },
+            _ => println!("other {:?}", chunk.header),
+        }
+
     }
     print!("\n");
     // println!("- FMT: (len={})", wav.format_chunk.len());

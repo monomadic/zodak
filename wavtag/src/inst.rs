@@ -1,3 +1,8 @@
+use byteorder::{ ReadBytesExt };
+
+use std::io;
+use std::io::{ Cursor };
+
 use { RiffChunk, ChunkType, RiffFile };
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -38,16 +43,18 @@ impl Default for InstrumentChunk {
 }
 
 impl InstrumentChunk {
-    pub fn from_chunk(chunk: &RiffChunk) -> InstrumentChunk {
-        InstrumentChunk {
-            unshifted_note: 0,
-            fine_tune: 0,
-            gain: 0,
-            low_note: 0,
-            high_note: 0,
-            low_vel: 0,
-            high_vel: 0,
-        }
+    pub fn from_chunk(chunk: &RiffChunk) -> Result<Self, io::Error> {
+        let mut data = Cursor::new(&chunk.data);
+
+        Ok(InstrumentChunk {
+            unshifted_note: data.read_u8()?,
+            fine_tune: data.read_u8()?,
+            gain: data.read_u8()?,
+            low_note: data.read_u8()?,
+            high_note: data.read_u8()?,
+            low_vel: data.read_u8()?,
+            high_vel: data.read_u8()?,
+        })
     }
 
     pub fn serialise(&self) -> Vec<u8> {
@@ -67,7 +74,7 @@ impl InstrumentChunk {
 impl RiffFile {
     pub fn get_instrument_chunk(&self) -> InstrumentChunk {
         match self.find_chunk_by_type(ChunkType::Instrument) {
-            Some(c) => InstrumentChunk::from_chunk(c),
+            Some(c) => InstrumentChunk::from_chunk(c).expect("chunk to be a valid instrument chunk"),
             None => InstrumentChunk::default(),
         }
     }

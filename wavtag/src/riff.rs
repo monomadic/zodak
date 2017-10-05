@@ -180,5 +180,7 @@ impl RiffFile {
         self.chunks.iter().find(|c| c.header == chunktype)
     }
 
-    pub fn add_or_replace_chunk_by_type(&self, chunk: RiffChunk) {}
+    pub fn add_or_replace_chunk_by_type(&mut self, chunk: RiffChunk) {
+        self.chunks.push(chunk);
+    }
 }
