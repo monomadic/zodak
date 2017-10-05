@@ -1,4 +1,4 @@
-use wavtag::{ RiffFile, ChunkType, InstrumentChunk, SamplerChunk };
+use wavtag::{ RiffFile, ChunkType, InstrumentChunk, SamplerChunk, SampleLoop, LoopType };
 use wavtag::utils::*;
 // use wavtag::{ name_to_note_num, note_num_to_name };
 use docopt::Docopt;
@@ -57,8 +57,8 @@ pub fn run() -> io::Result<()> {
                         inst.high_note = name_to_note_num(&get_input("midi high note (C0-G8): "));
 
                         if args.get_bool("--vel") {
-                            inst.low_vel = name_to_note_num(&get_input("midi low vel (C0-G8): "));
-                            inst.high_vel = name_to_note_num(&get_input("midi high vel (C0-G8): "));
+                            inst.low_vel = str_to_int(&get_input("midi low vel (0-127): ")) as u8;
+                            inst.high_vel = str_to_int(&get_input("midi high vel (0-127): ")) as u8;
                         }
 
                         wav.set_instrument_chunk(inst);
@@ -68,6 +68,15 @@ pub fn run() -> io::Result<()> {
                         let mut smpl = wav.get_sampler_chunk();
 
                         smpl.midi_unity_note = unity_note as u32;
+
+                        smpl.sample_loops = vec![SampleLoop {
+                            id: 0,
+                            loop_type: LoopType::Forward,
+                            start: str_to_int(&get_input("loop start (0-4294967294): ")),
+                            end: str_to_int(&get_input("loop end (0-4294967294): ")),
+                            fraction: 0,
+                            play_count: 0,
+                        }];
 
                         wav.set_sampler_chunk(smpl);
                     }

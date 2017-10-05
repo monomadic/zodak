@@ -45,7 +45,7 @@ impl Default for InstrumentChunk {
 impl InstrumentChunk {
     pub fn from_chunk(chunk: &RiffChunk) -> Result<Self, io::Error> {
         if chunk.header != ChunkType::Instrument {
-            return Err(Error::new(ErrorKind::Other, "attempted from_chunk on non-instrument chunk")) };
+            return Err(Error::new(ErrorKind::Other, "attempted from_chunk() on non-instrument chunk")) };
 
         let mut data = Cursor::new(&chunk.data);
 

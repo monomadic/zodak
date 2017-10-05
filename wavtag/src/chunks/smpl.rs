@@ -82,7 +82,7 @@ impl Default for SamplerChunk {
 impl SamplerChunk {
     pub fn from_chunk(chunk: &RiffChunk) -> Result<Self, io::Error> {
         if chunk.header != ChunkType::Sampler {
-            return Err(Error::new(ErrorKind::Other, "attempted from_chunk on non-sampler chunk")) };
+            return Err(Error::new(ErrorKind::Other, "attempted from_chunk() on non-sampler chunk")) };
 
         let mut data = Cursor::new(&chunk.data);
 
@@ -122,7 +122,7 @@ impl SamplerChunk {
         let mut chunk = Vec::with_capacity(36 + 24); // space for static fields and sample_loops
         unsafe { chunk.set_len(36 + 24) }; // todo: find a safe way to zero the elements.
 
-        let sample_loop = self.sample_loops.first().unwrap();
+        let sample_loop = self.sample_loops.first().expect("sampler chunk to have at least one sample loop");
         let _ = 0; // sampler_data: greater than 0 if extra sampler data is present.
 
         LittleEndian::write_u32_into(&vec![
