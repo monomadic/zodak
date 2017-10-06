@@ -67,13 +67,25 @@ pub fn run() -> io::Result<()> {
                     if args.get_bool("--smpl") {
                         let mut smpl = wav.get_sampler_chunk();
 
+                        let loop_start:u32 = if args.get_bool("--override-loop-start") {
+                            str_to_int(args.get_str("--override-loop-start"))
+                        } else {
+                            str_to_int(&get_input("loop start (0-4294967294): "))
+                        };
+
+                        let loop_end:u32 = if args.get_bool("--override-loop-end") {
+                            str_to_int(args.get_str("--override-loop-end"))
+                        } else {
+                            str_to_int(&get_input("loop end (0-4294967294): "))
+                        };
+
                         smpl.midi_unity_note = unity_note as u32;
 
                         smpl.sample_loops = vec![SampleLoop {
                             id: 0,
                             loop_type: LoopType::Forward,
-                            start: str_to_int(&get_input("loop start (0-4294967294): ")),
-                            end: str_to_int(&get_input("loop end (0-4294967294): ")),
+                            start: loop_start,
+                            end: loop_end,
                             fraction: 0,
                             play_count: 0, // infinite
                         }];

@@ -9,7 +9,7 @@ pub const USAGE: &'static str = "
 🎹  ZODAK
 
 Usage:
-  zodak tag <sourcedir> <destdir> [--start=<n>] [--end=<n>] [--inst] [--smpl] [--sfz]
+  zodak tag <sourcedir> <destdir> [--inst] [--smpl] [--sfz] [--override-loop-start=<n>] [--override-loop-end=<n>]
   zodak print <sourcedir>
   zodak (-h | --help)
   zodak --version
@@ -17,15 +17,20 @@ Usage:
 Options:
   -h --help             Show this screen.
   --version             Show version.
-  --start=<n>           Override loop start for all files processed
-  --end=<n>             Override loop end for all files processed
+
   --overwrite           Prompt to overwrite tags already within the WAV source (default=off)
-  --velocity            Prompt for a velocity range for each sample
-  --sfz                 Output an SFZ file with data from the input files
-  --sfzinput=<file>     Use an SFZ as an override for all tags
+  --velocity            Prompt for a velocity range for each sample (default=off)
   --readonly
+
   --inst                Add or edit instrument chunk
   --smpl                Add or edit sampler chunk
+
+  --sfz                 Output an SFZ file with data from the input files
+  --sfzinput=<file>     Use an SFZ as an override for all tags
+
+  --override-loop-start=<n>           Override loop start for all files processed
+  --override-loop-end=<n>             Override loop end for all files processed
+  
 ";
 
 fn main() {
