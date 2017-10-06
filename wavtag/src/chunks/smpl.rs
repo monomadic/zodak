@@ -25,12 +25,23 @@ pub struct SamplerChunk {
     /// particular manufacturer's product is to be specified, a value of 0 should be used.
     pub product: u32,
 
+    /// The sample period specifies the duration of time that passes during the playback of one sample
+    /// in nanoseconds (normally equal to 1 / Samplers Per Second, where Samples Per Second is the value
+    /// found in the format chunk).
     pub sample_period: u32,
 
+    /// The MIDI unity note value has the same meaning as the instrument chunk's MIDI Unshifted Note field
+    /// which specifies the musical note at which the sample will be played at it's original sample rate
+    /// (the sample rate specified in the format chunk).
     pub midi_unity_note: u32,
 
+    /// The MIDI pitch fraction specifies the fraction of a semitone up from the specified MIDI unity note
+    /// field. A value of 0x80000000 means 1/2 semitone (50 cents) and a value of 0x00000000 means no fine
+    /// tuning between semitones.
     pub midi_pitch_fraction: u32,
 
+    /// The SMPTE format specifies the Society of Motion Pictures and Television E time format used in the
+    /// following SMPTE Offset field. If a value of 0 is set, SMPTE Offset should also be set to 0.
     pub smpte_format: u32,
 
     pub smpte_offset: u32,
@@ -46,13 +57,29 @@ pub struct SamplerChunk {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SampleLoop {
+
+    /// The Cue Point ID specifies the unique ID that corresponds to one of the defined cue points
+    /// in the cue point list. Furthermore, this ID corresponds to any labels defined in the
+    /// associated data list chunk which allows text labels to be assigned to the various sample loops.
     pub id: u32,
 
     /// The type field defines how the waveform samples will be looped.
+    /// 0 - Loop forward (normal)
+    /// 1 - Alternating loop (forward/backward, also known as Ping Pong)
+    /// 2 - Loop backward (reverse)
+    /// 3 - 31 - Reserved for future standard types
+    /// 32 - 0xFFFFFFFF - Sampler specific types (defined by manufacturer)
     pub loop_type: LoopType,
+    
     pub start: u32,
     pub end: u32,
     pub fraction: u32,
+
+    /// The play count value determines the number of times to play the loop.
+    /// A value of 0 specifies an infinite sustain loop. An infinite sustain
+    /// loop will continue looping until some external force interrupts playback,
+    /// such as the musician releasing the key that triggered the wave's playback.
+    /// All other values specify an absolute number of times to loop.
     pub play_count: u32,
 }
 

@@ -19,7 +19,8 @@ pub struct RiffChunk {
 
 impl RiffChunk {
     pub fn len(&self) -> usize {
-        self.data.len()
+        // println!("lenght called [{:?}] {:?}", self.header, self.data.len());
+        self.data.len() // todo: investigate if this is actually valid given we have padded bytes.
     }
 }
 
@@ -131,6 +132,7 @@ impl RiffFile {
             let mut data = chunk.into_inner();
             if ::utils::padded_size(chunk_len) != chunk_len {
 
+                // don't need to pad on reading? only writing!
                 println!("detected invalid/unpadded chunk size: {:?}, should be {:?}", chunk_len, ::utils::padded_size(chunk_len));
                 ::utils::pad_vec(&mut data, (::utils::padded_size(chunk_len) - chunk_len) as usize);
 
@@ -159,9 +161,19 @@ impl RiffFile {
 
         for chunk in self.chunks.iter() {
             let header = chunk.header.clone();
+            let chunk_len = chunk.len() as u32;
+
             writer.write(header.to_tag())?;
             writer.write_u32::<LittleEndian>(chunk.len() as u32)?;
-            writer.write(&chunk.data)?;
+
+            if ::utils::padded_size(chunk_len) != chunk_len {
+                // have to copy this chunk to mutably pad it :(
+                let mut padded_chunk_data = chunk.data.clone();
+                ::utils::pad_vec(&mut padded_chunk_data, (::utils::padded_size(chunk_len) - chunk_len) as usize);
+                writer.write(&padded_chunk_data)?;
+            } else {
+                writer.write(&chunk.data)?;
+            }
         };
 
         // for ref chunk in self.chunks.into_iter() {

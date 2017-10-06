@@ -75,7 +75,7 @@ pub fn run() -> io::Result<()> {
                             start: str_to_int(&get_input("loop start (0-4294967294): ")),
                             end: str_to_int(&get_input("loop end (0-4294967294): ")),
                             fraction: 0,
-                            play_count: 0,
+                            play_count: 0, // infinite
                         }];
 
                         wav.set_sampler_chunk(smpl);
