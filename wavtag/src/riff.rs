@@ -129,15 +129,6 @@ impl RiffFile {
             let chunk_len = reader.read_u32::<LittleEndian>()?; // size
             let chunk = Cursor::new(::utils::read_bytes(&mut reader, ::utils::padded_size(chunk_len) as usize)?);
 
-            // let mut data = chunk.into_inner();
-            // if ::utils::padded_size(chunk_len) != chunk_len {
-
-            //     // don't need to pad on reading? only writing!
-            //     println!("detected invalid/unpadded chunk size: {:?}, should be {:?}", chunk_len, ::utils::padded_size(chunk_len));
-            //     ::utils::pad_vec(&mut data, (::utils::padded_size(chunk_len) - chunk_len) as usize);
-
-            //     println!("padding complete, new size: {:?}", data.len());
-            // }
             chunks.push(RiffChunk{ data: chunk.into_inner(), header: header_to_rifftype(tag) });
         }
 
@@ -193,6 +184,7 @@ impl RiffFile {
     }
 
     pub fn add_or_replace_chunk_by_type(&mut self, chunk: RiffChunk) {
+        self.chunks.retain(|c| c.header != chunk.header);
         self.chunks.push(chunk);
     }
 }
