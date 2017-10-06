@@ -71,3 +71,15 @@ pub fn pad_vec(mut v:&mut Vec<u8>, size: usize) {
 pub fn str_to_int(str: &str) -> u32 {
     str.trim().parse().unwrap()
 }
+
+pub fn dir_as_string(path:&str) -> String {
+    use std::path::PathBuf;
+    let mut current_dir = PathBuf::new();
+    if path == "." {
+        use std::env;
+        current_dir = env::current_dir().unwrap();
+    } else {
+        current_dir.push(path);
+    }
+    current_dir.file_name().expect("current directory to be valid").to_string_lossy().into_owned()
+}

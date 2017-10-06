@@ -2,13 +2,14 @@ extern crate wavtag;
 extern crate docopt;
 
 mod commands;
+mod sfz;
 
 pub const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 pub const USAGE: &'static str = "
 🎹  ZODAK
 
 Usage:
-  zodak tag <sourcedir> <destdir> [--start=<n>] [--end=<n>] [--inst] [--smpl]
+  zodak tag <sourcedir> <destdir> [--start=<n>] [--end=<n>] [--inst] [--smpl] [--sfz]
   zodak print <sourcedir>
   zodak (-h | --help)
   zodak --version
@@ -24,6 +25,7 @@ Options:
   --sfzinput=<file>     Use an SFZ as an override for all tags
   --readonly
   --inst                Add or edit instrument chunk
+  --smpl                Add or edit sampler chunk
 ";
 
 fn main() {

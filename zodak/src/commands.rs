@@ -42,7 +42,7 @@ pub fn run() -> io::Result<()> {
                 if instrument_name == "" { instrument_name = instrument_name_default };
 
                 for mut wav in wavs {
-                    println!("{}", wav.filename);
+                    println!("\nFile: {}", wav.filename);
 
                     // get the unity note first as it's used in both chunks
                     let unity_note = if args.get_bool("--inst") || args.get_bool("--smpl") {
@@ -84,8 +84,12 @@ pub fn run() -> io::Result<()> {
                     let dest = format!("{}", file_name(&wav, instrument_name.as_str()));
                     println!("writing: {}", dest);
 
+                    let mut dest_path = PathBuf::new();
+                    dest_path.push(destdir);
+                    dest_path.push(dest);
+
                     // TODO if not read only
-                    let writer = fs::File::create(dest).expect("output wav to create correctly.");
+                    let writer = fs::File::create(dest_path).expect("output wav to create correctly.");
                     let _ = wav.write(writer);
 
                 }
@@ -126,9 +130,6 @@ fn read_directory(path:PathBuf) -> io::Result<Vec<RiffFile>>  {
 
 fn print_wav(wav:RiffFile) {
     println!("{}, chunks: {:?}", wav.filename, wav.chunks.len());
-    // for chunk in wav.chunks {
-    //     print!(" [{:?}]", chunk.header);
-    // }
 
     for chunk in wav.chunks {
 
@@ -143,14 +144,11 @@ fn print_wav(wav:RiffFile) {
                     println!("{:?}", smpl);
                 } else { println!("broken smpl chunk detected."); }
             },
-            _ => println!("other {:?}", chunk.header),
+            _ => println!("[{:?}]", chunk.header),
         }
 
     }
     print!("\n");
-    // println!("- FMT: (len={})", wav.format_chunk.len());
-    // println!("- DATA: (len={})", wav.data_chunk.len());
-    // println!("- SMPL: {:?})", wav.sampler_chunk);
 }
 
 pub fn file_name(wav: &RiffFile, name:&str) -> String {
