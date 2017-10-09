@@ -62,7 +62,7 @@ pub fn run() -> io::Result<()> {
             read_directory(source.clone())
         } else {
             let file = fs::File::open(source.clone()).expect("file to open");
-            let filename: String = (*source.file_name().unwrap().to_string_lossy()).to_string();
+            let filename: String = (*source.file_name().expect("filename to be acceptable").to_string_lossy()).to_string();
             Ok(vec!(RiffFile::read(file, filename).expect("wav to parse correctly")))
         };
 
@@ -78,8 +78,8 @@ pub fn run() -> io::Result<()> {
                 fn key_from_filename(filename: &str) -> u8 {
                     use regex::Regex;
 
-                    let re = Regex::new(r"[A-G][#b]?\-?[0-8]").unwrap();
-                    let capture = &re.captures(filename).unwrap()[0];
+                    let re = Regex::new(r"[A-Ga-g][#bB]?\-?[0-8]").expect("regular expression to parse");
+                    let capture = &re.captures(filename).expect("regex to find some notes")[0];
                     // println!("Extracted note {:?} from filename {:?}", capture, filename);
                     name_to_note_num(capture)
                 }
@@ -322,7 +322,7 @@ fn read_directory(path:PathBuf) -> io::Result<Vec<RiffFile>>  {
         match file.extension().and_then(|oss| oss.to_str()) {
             Some("wav") => {
                 let reader = fs::File::open(file).expect("file to open");
-                let filename: String = (*file.file_name().unwrap().to_string_lossy()).to_string();
+                let filename: String = (*file.file_name().expect("filename to parse correctly").to_string_lossy()).to_string();
                 Some(RiffFile::read(reader, filename).expect("wav to parse correctly"))
             },
             _ => None
@@ -366,7 +366,7 @@ pub fn dir_as_string(path:&str) -> String {
     let mut current_dir = PathBuf::new();
     if path == "." {
         use std::env;
-        current_dir = env::current_dir().unwrap();
+        current_dir = env::current_dir().expect("current directory to return correctly");
     } else {
         current_dir.push(path);
     }
