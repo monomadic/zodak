@@ -6,6 +6,7 @@ authors = ["Rob Saunders <rob@wearebrandnew.com>"]
 [dependencies]
 docopt = "0.8"
 wavtag = { path = "../wavtag" }
+regex = "0.2"
 
 [[bin]]
 name = "zodak"

@@ -64,7 +64,7 @@ pub fn padded_size(size: u32) -> u32 {
 }
 
 pub fn pad_vec(mut v:&mut Vec<u8>, size: usize) {
-    println!("attempting to pad {} bytes.", size);
+    // println!("attempting to pad {} bytes.", size);
     for _ in 0..size { v.push(0) };
 }
 

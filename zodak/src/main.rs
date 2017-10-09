@@ -1,15 +1,16 @@
 extern crate wavtag;
 extern crate docopt;
+extern crate regex;
 
 mod commands;
-mod sfz;
+mod defaults;
 
 pub const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 pub const USAGE: &'static str = "
 🎹  ZODAK
 
 Usage:
-  zodak tag <sourcedir> <destdir> [--inst] [--smpl] [--sfz] [--override-loop-start=<n>] [--override-loop-end=<n>]
+  zodak tag <sourcedir> <destdir> [--inst] [--smpl] [--sfz] [--guess-keymap] [--sfzinput=<file>] [--override-loop-start=<n>] [--override-loop-end=<n>]
   zodak print <sourcedir>
   zodak (-h | --help)
   zodak --version
@@ -21,6 +22,8 @@ Options:
   --overwrite           Prompt to overwrite tags already within the WAV source (default=off)
   --velocity            Prompt for a velocity range for each sample (default=off)
   --readonly
+
+  --guess-keymap        Attempt to guess a keymap based on filenames
 
   --inst                Add or edit instrument chunk
   --smpl                Add or edit sampler chunk

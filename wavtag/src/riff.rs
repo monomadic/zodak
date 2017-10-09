@@ -167,15 +167,6 @@ impl RiffFile {
             }
         };
 
-        // for ref chunk in self.chunks.into_iter() {
-        //     let tag = chunk.header.to_tag();
-        //     // writer.write(chunk.header.to_tag())?;
-
-        // }
-
-        // writer.write_chunk(b"fmt ", self.format_chunk.len(), &self.format_chunk.data)?;
-        // writer.write_chunk(b"data", wav.data_chunk.len(), &wav.data_chunk.data)?;
-
         Ok(())
     }
 
