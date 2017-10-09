@@ -47,13 +47,14 @@ pub fn name_to_note_num(note_name:&str) -> u8 {
     let octave:u8 = octave[0].to_string().parse().expect("octave to be converted from a digit string");
     let note:Vec<char> = note_name.chars().take(note_len - 1).collect();
 
-
     let base_note = *notes.get(&note[0].clone().to_lowercase().to_string().as_str()).expect("note to be a valid midi note");
 
     let octave = octave;
     let mut midi_note = base_note + (octave * 12);
 
     if note.iter().find(|&&x| x == '#' ).is_some() { midi_note = midi_note + 1; }
+    if note.iter().find(|&&x| x == 'b' ).is_some() { midi_note = midi_note - 1; }
+    if note.iter().find(|&&x| x == 'B' ).is_some() { midi_note = midi_note - 1; }
     if note.iter().find(|&&x| x == '-' ).is_some() { midi_note = midi_note - (24 * octave); }
 
     midi_note + 24
