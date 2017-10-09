@@ -10,8 +10,8 @@ pub const USAGE: &'static str = "
 🎹  ZODAK
 
 Usage:
-  zodak tag <sourcedir> <destdir> [--inst] [--smpl] [--sfz] [--guess-keymap] [--sfzinput=<file>] [--override-loop-start=<n>] [--override-loop-end=<n>]
-  zodak print <sourcedir>
+  zodak tag <source> <destdir> [--inst] [--smpl] [--sfz] [--guess-keymap] [--sfzinput=<file>] [--loop-start=<n>] [--loop-end=<n>]
+  zodak print <source>
   zodak (-h | --help)
   zodak --version
 
@@ -31,8 +31,8 @@ Options:
   --sfz                 Output an SFZ file with data from the input files
   --sfzinput=<file>     Use an SFZ as an override for all tags
 
-  --override-loop-start=<n>           Override loop start for all files processed
-  --override-loop-end=<n>             Override loop end for all files processed
+  --loop-start=<n>           Override loop start for all files processed
+  --loop-end=<n>             Override loop end for all files processed
   
 ";
 

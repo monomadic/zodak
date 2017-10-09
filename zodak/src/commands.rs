@@ -34,7 +34,7 @@ pub fn run() -> io::Result<()> {
     // let arg_read_only = args.get_str("--read_only");
 
     if args.get_bool("print") {
-        let sourcedir = args.get_vec("<sourcedir>")[0];
+        let sourcedir = args.get_vec("<source>")[0];
 
         match read_directory(Path::new(sourcedir).to_path_buf()) {
             Ok(wavs) => {
@@ -45,15 +45,33 @@ pub fn run() -> io::Result<()> {
     }
 
     if args.get_bool("tag") {
-        let sourcedir = args.get_vec("<sourcedir>")[0];
+        let source_arg = args.get_vec("<source>")[0];
         let destdir = args.get_vec("<destdir>")[0];
+        let mut dest_path = PathBuf::new();
+        dest_path.push(destdir);
 
-        match read_directory(Path::new(sourcedir).to_path_buf()) {
+        use std::process::exit;
+        if !dest_path.is_dir() {
+            println!("\nError: Supplied output path is not a directory.");
+            exit(1);
+        }
+
+        let mut source = PathBuf::new();
+        source.push(source_arg);
+        let file_result = if source.is_dir() {
+            read_directory(source.clone())
+        } else {
+            let file = fs::File::open(source.clone()).expect("file to open");
+            let filename: String = (*source.file_name().unwrap().to_string_lossy()).to_string();
+            Ok(vec!(RiffFile::read(file, filename).expect("wav to parse correctly")))
+        };
+
+        match file_result {
             Ok(wavs) => {
                 println!("Found {} wav files.", wavs.len());
 
                 // prompt for an instrument name.
-                let instrument_name_default = dir_as_string(sourcedir); // todo: clip last directory name
+                let instrument_name_default = dir_as_string(source.into_os_string().to_string_lossy().into_owned().as_str()); // todo: clip last directory name
                 let mut instrument_name = get_input(format!("instrument name [{}]: ", instrument_name_default).as_str());
                 if instrument_name == "" { instrument_name = instrument_name_default };
 
@@ -78,16 +96,16 @@ pub fn run() -> io::Result<()> {
                         let unity_note_name = note_num_to_name(unity_note_number as u32);
                         let output_filename = output_filename(instrument_name.clone(), unity_note_name);
 
-                        let loop_start:u32 = if args.get_bool("--override-loop-start") {
-                            str_to_int(args.get_str("--override-loop-start"))
+                        let loop_start:u32 = if args.get_bool("--loop-start") {
+                            str_to_int(args.get_str("--loop-start"))
                         } else {
-                            str_to_int(&get_input("loop start (0-4294967294): "))
+                            0
                         };
 
-                        let loop_end:u32 = if args.get_bool("--override-loop-end") {
-                            str_to_int(args.get_str("--override-loop-end"))
+                        let loop_end:u32 = if args.get_bool("--loop-end") {
+                            str_to_int(args.get_str("--loop-end"))
                         } else {
-                            str_to_int(&get_input("loop end (0-4294967294): "))
+                            0
                         };
 
                         files_to_write.push(DestinationSample {
@@ -104,6 +122,17 @@ pub fn run() -> io::Result<()> {
                     }
 
                     files_to_write.sort_by(|a, b| a.unity_note.cmp(&b.unity_note));
+
+                    // we want to sort first THEN ask this info (easier for user).
+                    if args.get_bool("--smpl") && (!args.get_bool("--loop-start") || !args.get_bool("--loop-end")) {
+                        // found a situation we need to ask for more information.
+
+                        for wav in files_to_write.iter_mut() {
+                            println!("\n{}:", wav.file.filename);
+                            wav.loop_start = str_to_int(&get_input("loop start (0-4294967294): "));
+                            wav.loop_end = str_to_int(&get_input("loop end (0-4294967294): "));
+                        }
+                    }
 
                     let num_samples = files_to_write.len();
                     let unity_notes:Vec<u8> = files_to_write.iter().map(|w| w.unity_note ).collect(); // borrow checker shakes fist
@@ -126,6 +155,9 @@ pub fn run() -> io::Result<()> {
                     files_to_write
                 }
 
+                let defaults = guess_defaults(wavs, instrument_name, &args);
+
+                println!("FILES WRITTEN:");
                 print!("{:<40}", "Input");
                 print!("{:<40}", "Output");
                 print!("{:<15}", "Note");
@@ -134,7 +166,7 @@ pub fn run() -> io::Result<()> {
                 print!("\n");
 
                 // iterate our guessed defaults, correcting any unwanted info
-                for mut wav in guess_defaults(wavs, instrument_name, &args) {
+                for mut wav in defaults {
                     print!("{:<40}", wav.file.filename);
                     print!("{:<40}", wav.output_filename);
                     print!("{:<15}", format!("{} ({})", note_num_to_name(wav.unity_note as u32), wav.unity_note));
@@ -179,12 +211,11 @@ pub fn run() -> io::Result<()> {
                         );
                     }
 
-                    let mut dest_path = PathBuf::new();
-                    dest_path.push(destdir);
-                    dest_path.push(wav.output_filename);
+                    let mut dest_file = dest_path.clone();
+                    dest_file.push(wav.output_filename);
 
                     // TODO if not read only
-                    let writer = fs::File::create(dest_path).expect("output wav to create correctly.");
+                    let writer = fs::File::create(dest_file).expect("output wav to create correctly.");
                     let _ = wav.file.write(writer);
                 }
 
@@ -200,7 +231,7 @@ pub fn run() -> io::Result<()> {
                 //     // let _ = if args.get_bool("--sfzinput") {
                 //     //     use std::error::Error;
 
-                //     //     let sfzfile = args.get_str("--override-loop-start");
+                //     //     let sfzfile = args.get_str("--loop-start");
 
                 //     //     match fs::File::open(&sfzfile) {
                 //     //         Err(why) => panic!("Error reading SFZ: {}", why.description()),
@@ -226,14 +257,14 @@ pub fn run() -> io::Result<()> {
                 //     if args.get_bool("--smpl") {
                 //         let mut smpl = wav.get_sampler_chunk();
 
-                //         let loop_start:u32 = if args.get_bool("--override-loop-start") {
-                //             str_to_int(args.get_str("--override-loop-start"))
+                //         let loop_start:u32 = if args.get_bool("--loop-start") {
+                //             str_to_int(args.get_str("--loop-start"))
                 //         } else {
                 //             str_to_int(&get_input("loop start (0-4294967294): "))
                 //         };
 
-                //         let loop_end:u32 = if args.get_bool("--override-loop-end") {
-                //             str_to_int(args.get_str("--override-loop-end"))
+                //         let loop_end:u32 = if args.get_bool("--loop-end") {
+                //             str_to_int(args.get_str("--loop-end"))
                 //         } else {
                 //             str_to_int(&get_input("loop end (0-4294967294): "))
                 //         };
