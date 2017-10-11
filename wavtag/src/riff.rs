@@ -78,7 +78,7 @@ fn header_to_rifftype(tag: [u8;4]) -> ChunkType {
         b"smpl" | b"SMPL" => ChunkType::Sampler,
         b"ltxt" | b"LTXT" | b"INST" | b"inst" => ChunkType::Instrument,
         b"acid" | b"ACID" => ChunkType::Acid,
-        _ => ChunkType::Unknown(format!("{:?}", tag)),
+        _ => ChunkType::Unknown(String::from_utf8_lossy(&tag).into_owned()),
     }
 }
 
@@ -121,12 +121,32 @@ impl RiffFile {
         loop { // read chunks
             // let tag = reader.read_u32::<LittleEndian>()?;
             let mut tag=[0u8;4]; // header tag
-            let chunk_header_size = reader.read(&mut tag)?;
-            if chunk_header_size == 0 {
+
+            let read_attempt = reader.read(&mut tag);
+
+            let chunk_header = match read_attempt {
+                Err(_) => {
+                    println!("malformed RIFF file detected. skipping additional chunks.");
+                    break;
+                }
+                Ok(header) => header
+            };
+
+            // let chunk_header_size = reader.read(&mut tag)?;
+            if chunk_header == 0 {
                 break; // end of file found
             }
 
-            let chunk_len = reader.read_u32::<LittleEndian>()?; // size
+            // println!("chunk:{:?}", String::from_utf8_lossy(&tag).into_owned());
+
+            let chunk_len = match reader.read_u32::<LittleEndian>() {
+                Err(_) => {
+                    println!("malformed RIFF file detected. skipping additional chunks.");
+                    break;
+                }
+                Ok(length) => length
+            };
+
             let chunk = Cursor::new(::utils::read_bytes(&mut reader, ::utils::padded_size(chunk_len) as usize)?);
 
             chunks.push(RiffChunk{ data: chunk.into_inner(), header: header_to_rifftype(tag) });

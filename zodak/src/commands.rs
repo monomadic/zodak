@@ -8,6 +8,7 @@ use std::io;
 use std::io::{ Write };
 use std::fs;
 use std::path::{ PathBuf, Path };
+use std::error::Error;
 
 // #[derive(Debug)]
 pub struct DestinationSample {
@@ -32,6 +33,7 @@ pub fn run() -> io::Result<()> {
     println!("🎹  ZODAK v{}", ::VERSION);
 
     // let arg_read_only = args.get_str("--read_only");
+    let arg_verbose = args.get_str("--verbose");
 
     if args.get_bool("print") {
         let sourcedir = args.get_vec("<source>")[0];
@@ -40,7 +42,7 @@ pub fn run() -> io::Result<()> {
             Ok(wavs) => {
                 for wav in wavs { print_wav(wav) }
             },
-            Err(_) => println!("No file or directory.") // todo: properly unwrap error message.
+            Err(why) => println!("Error: {}", why.description()) // todo: properly unwrap error message.
         }        
     }
 
@@ -63,11 +65,15 @@ pub fn run() -> io::Result<()> {
         } else {
             let file = fs::File::open(source.clone()).expect("file to open");
             let filename: String = (*source.file_name().expect("filename to be acceptable").to_string_lossy()).to_string();
-            Ok(vec!(RiffFile::read(file, filename).expect("wav to parse correctly")))
+            let wav = RiffFile::read(file, filename);
+            match wav {
+                Ok(w) => Ok(vec!(w)),
+                Err(why) => panic!("Error reading wav: {}", why.description())
+            }
         };
 
         match file_result {
-            Ok(wavs) => {
+            Ok(mut wavs) => {
                 println!("Found {} wav files.", wavs.len());
 
                 // prompt for an instrument name.
@@ -154,7 +160,7 @@ pub fn run() -> io::Result<()> {
                     }
                     files_to_write
                 }
-
+  
                 let defaults = guess_defaults(wavs, instrument_name, &args);
 
                 println!("FILES WRITTEN:");
@@ -318,12 +324,16 @@ fn read_directory(path:PathBuf) -> io::Result<Vec<RiffFile>>  {
         }).collect())
     }
 
-    Ok(path_to_pathbufs(&path)?.iter().filter_map(|file| {
-        match file.extension().and_then(|oss| oss.to_str()) {
+    Ok(path_to_pathbufs(&path)?.iter().filter_map(|pathbuf| {
+        match pathbuf.extension().and_then(|oss| oss.to_str()) {
             Some("wav") => {
-                let reader = fs::File::open(file).expect("file to open");
-                let filename: String = (*file.file_name().expect("filename to parse correctly").to_string_lossy()).to_string();
-                Some(RiffFile::read(reader, filename).expect("wav to parse correctly"))
+                let reader = fs::File::open(pathbuf).expect("file to open");
+                let filename: String = (*pathbuf.file_name().expect("filename to parse correctly").to_string_lossy()).to_string();
+                
+                match RiffFile::read(reader, filename.clone()) {
+                    Ok(file) => Some(file),
+                    Err(why) => { panic!("Error parsing wav \"{}\": {}", filename, why.description()) }
+                }
             },
             _ => None
         }

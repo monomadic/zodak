@@ -11,7 +11,7 @@ pub fn read_bytes(ref mut reader: &mut File, n: usize) -> io::Result<Vec<u8>> {
     // unsafe { buf.set_len(n); }
 
     let mut buf = vec![];
-    try!(io::copy(&mut reader.take(n as u64), &mut buf));
+    io::copy(&mut reader.take(n as u64), &mut buf).expect("file to have enough bytes to read");
 
     Ok(buf)
 }

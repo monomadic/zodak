@@ -10,7 +10,7 @@ pub const USAGE: &'static str = "
 🎹  ZODAK
 
 Usage:
-  zodak tag <source> <destdir> [--inst] [--smpl] [--sfz] [--guess-keymap] [--sfzinput=<file>] [--loop-start=<n>] [--loop-end=<n>]
+  zodak tag <source> <destdir> [--inst] [--smpl] [--sfz] [--guess-keymap] [--sfzinput=<file>] [--loop-start=<n>] [--loop-end=<n>] [--verbose]
   zodak print <source>
   zodak (-h | --help)
   zodak --version
@@ -22,6 +22,7 @@ Options:
   --overwrite           Prompt to overwrite tags already within the WAV source (default=off)
   --velocity            Prompt for a velocity range for each sample (default=off)
   --readonly
+  --verbose             Display more information during parsing
 
   --guess-keymap        Attempt to guess a keymap based on filenames
 
