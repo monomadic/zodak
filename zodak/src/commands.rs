@@ -84,10 +84,11 @@ pub fn run() -> io::Result<()> {
                 fn key_from_filename(filename: &str) -> u8 {
                     use regex::Regex;
 
-                    let re = Regex::new(r"[A-Ga-g][#bB]?\-?[0-8]").expect("regular expression to parse");
-                    let capture = &re.captures(filename).expect("regex to find some notes")[0];
-                    // println!("Extracted note {:?} from filename {:?}", capture, filename);
-                    name_to_note_num(capture)
+                    let re = Regex::new(r"([A-Ga-g][#bB]?\-?[0-8])").expect("regular expression to parse");
+                    let capture = &re.captures_iter(filename).last().expect("regex to find some notes");
+
+                    println!("Extracted note {:?} from filename {:?}", capture, filename);
+                    name_to_note_num(&capture[capture.len() - 1])
                 }
 
                 fn output_filename(instrument_name: String, keyname: String) -> String {
