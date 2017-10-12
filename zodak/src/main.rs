@@ -4,6 +4,7 @@ extern crate regex;
 
 mod commands;
 mod defaults;
+pub mod midi;
 
 pub const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 pub const USAGE: &'static str = "

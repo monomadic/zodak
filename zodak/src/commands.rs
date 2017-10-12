@@ -1,5 +1,6 @@
 use wavtag::{ RiffFile, ChunkType, InstrumentChunk, SamplerChunk, SampleLoop, LoopType };
 use wavtag::utils::*;
+use midi::*;
 // use wavtag::{ name_to_note_num, note_num_to_name };
 use docopt;
 use docopt::Docopt;
@@ -87,7 +88,7 @@ pub fn run() -> io::Result<()> {
                     let re = Regex::new(r"([A-Ga-g][#bB]?\-?[0-8])").expect("regular expression to parse");
                     let capture = &re.captures_iter(filename).last().expect("regex to find some notes");
 
-                    println!("Extracted note {:?} from filename {:?}", capture, filename);
+                    println!("Extracted note {:?} from filename {:?}", &capture[capture.len() - 1], filename);
                     name_to_note_num(&capture[capture.len() - 1])
                 }
 

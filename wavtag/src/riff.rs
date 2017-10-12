@@ -47,20 +47,23 @@ pub enum ChunkType {
 }
 
 impl ChunkType {
-    pub fn to_tag(self) -> &'static [u8;4] {
+    pub fn to_tag(self) -> [u8;4] {
         match self {
-            ChunkType::Format => b"fmt ",
-            ChunkType::Data => b"data",
-            ChunkType::Fact => b"fact",
-            ChunkType::Cue => b"cue ",
-            ChunkType::Playlist => b"plst",
-            ChunkType::List => b"list",
-            ChunkType::Label => b"labl",
-            ChunkType::Note => b"note",
-            ChunkType::Sampler => b"smpl",
-            ChunkType::Instrument => b"inst",
-            ChunkType::Acid => b"acid",
-            ChunkType::Unknown(_) => b"errr", // TODO fix this
+            ChunkType::Format => *b"fmt ",
+            ChunkType::Data => *b"data",
+            ChunkType::Fact => *b"fact",
+            ChunkType::Cue => *b"cue ",
+            ChunkType::Playlist => *b"plst",
+            ChunkType::List => *b"list",
+            ChunkType::Label => *b"labl",
+            ChunkType::Note => *b"note",
+            ChunkType::Sampler => *b"smpl",
+            ChunkType::Instrument => *b"inst",
+            ChunkType::Acid => *b"acid",
+            ChunkType::Unknown(tag) => {
+                let tag = tag.as_bytes();
+                [tag[0], tag[1], tag[2], tag[3]]
+            },
         }
     }
 }
@@ -174,7 +177,7 @@ impl RiffFile {
             let header = chunk.header.clone();
             let chunk_len = chunk.len() as u32;
 
-            writer.write(header.to_tag())?;
+            writer.write(&header.to_tag())?;
             writer.write_u32::<LittleEndian>(chunk.len() as u32)?;
 
             if ::utils::padded_size(chunk_len) != chunk_len {

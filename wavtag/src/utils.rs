@@ -31,34 +31,37 @@ pub fn note_num_to_name(num: u32) -> String {
     format!("{}{}",slice,oct)
 }
 
-pub fn name_to_note_num(note_name:&str) -> u8 {
-    use std::collections::HashMap;
-    let mut notes:HashMap<&str,u8> = HashMap::new();
-    notes.insert("c", 0);
-    notes.insert("d", 2);
-    notes.insert("e", 4);
-    notes.insert("f", 5);
-    notes.insert("g", 7);
-    notes.insert("a", 9);
-    notes.insert("b", 11);
+// pub fn name_to_note_num(note_name:&str) -> u8 {
 
-    let note_len = note_name.len();
-    let octave:Vec<char> = note_name.chars().skip(note_len - 1).take(1).collect();
-    let octave:u8 = octave[0].to_string().parse().expect("octave to be converted from a digit string");
-    let note:Vec<char> = note_name.chars().take(note_len - 1).collect();
+//     use std::collections::HashMap;
+//     let mut notes:HashMap<&str,u8> = HashMap::new();
+//     notes.insert("c", 0);
+//     notes.insert("d", 2);
+//     notes.insert("e", 4);
+//     notes.insert("f", 5);
+//     notes.insert("g", 7);
+//     notes.insert("a", 9);
+//     notes.insert("b", 11);
 
-    let base_note = *notes.get(&note[0].clone().to_lowercase().to_string().as_str()).expect("note to be a valid midi note");
+//     let note_len = note_name.len();
+//     let octave:Vec<char> = note_name.chars().skip(note_len - 1).take(1).collect();
+//     let octave:u8 = octave[0].to_string().parse().expect("octave to be converted from a digit string");
+//     let note:Vec<char> = note_name.chars().take(note_len - 1).collect();
 
-    let octave = octave;
-    let mut midi_note = base_note + (octave * 12);
+//     let base_note = *notes.get(&note[0].clone().to_lowercase().to_string().as_str()).expect("note to be a valid midi note");
 
-    if note.iter().find(|&&x| x == '#' ).is_some() { midi_note = midi_note + 1; }
-    if note.iter().find(|&&x| x == 'b' ).is_some() { midi_note = midi_note - 1; }
-    if note.iter().find(|&&x| x == 'B' ).is_some() { midi_note = midi_note - 1; }
-    if note.iter().find(|&&x| x == '-' ).is_some() { midi_note = midi_note - (24 * octave); }
+//     let octave = octave;
+//     let mut midi_note = base_note + (octave * 12);
 
-    midi_note + 24
-}
+//     if note.iter().find(|&&x| x == '#' ).is_some() { midi_note = midi_note + 1; }
+//     if note.iter().find(|&&x| x == 'b' ).is_some() { midi_note = midi_note - 1; }
+//     if note.iter().find(|&&x| x == 'B' ).is_some() { midi_note = midi_note - 1; }
+//     if note.iter().find(|&&x| x == '-' ).is_some() { midi_note = midi_note - (24 * octave); }
+
+//     // println!("converted: {} to {} and back {}", note_name, midi_note + 24, note_num_to_name(midi_note as u32 + 24));
+
+//     midi_note + 24
+// }
 
 pub fn padded_size(size: u32) -> u32 {
     (((size + 1) / 2) * 2)
