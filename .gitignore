@@ -4,3 +4,4 @@ Cargo.lock
 *.wav
 _output
 old
+build.sh
