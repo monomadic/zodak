@@ -66,3 +66,13 @@ Options:
   --loop-start=<n>           Override loop start for all files processed
   --loop-end=<n>             Override loop end for all files processed
   ```
+
+  Generally, I tend to just use the following:
+  ```bash
+  zodak tag . _out --inst --smpl --guess-keymap
+  ```
+
+  And if I come across a set of wavs that all have the same sample loop points (it does happen sometimes) I use:
+  ```bash
+  zodak tag . _out --inst --smpl --guess-keymap --loop-start=144060 --loop-end=414540
+  ```
