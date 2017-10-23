@@ -5,6 +5,7 @@
 A tool chain for managing samples, with functionality not found in tools of its class. Take control of your sample library and never have messy lost files in proprietary formats ever again!
 
 - edit/create/manage RIFF/WAV metadata chunks - Instrument, Cue, Sample (INST, CUE, SMPL).
+- guess information from filename.
 - export/sync SFZ files.
 
 ## Why?
@@ -25,7 +26,7 @@ Above: drag and drop your wav files in and they'll automap and configure as abov
 
 - sf2/sf3/sf4 instruments
 - flac/ogg formats
-- I really need help on this but I'd like to openly support non-encrypted kontakt files, exs, etc. Lets free up these sample formats and in turn free up the audio industry, by documenting their structures in code here. This does NOT violate any laws despite what forum posters will have you think, you are transcribing/converting your own files for your own use. Don't have them tied up in garbage formats that leave your projects broken with missing samples and version mismatches when you come back to them.
+- I really need help on this but I'd like to openly support non-encrypted kontakt files, exs, etc.
 - other desired import/export support: nnxt, als, xrni, bitwig multisample
 
 ## Other goals:
@@ -34,15 +35,34 @@ Above: drag and drop your wav files in and they'll automap and configure as abov
 - drum kit mode
 
 ## Usage:
+Zodak is very interactive. You basically point a directory of wav files at it, name the instrument, and it will attempt to work out the notes and generate an appropriate keymap from the filename. If it can't work out any information, it will ask you on a file by file basis. Nothing will get written until the end when you have a functional instrument and all the wavs have been guaranteed to validate. Any malformed or broken wavs (many large companies produce bogus wav samples that break spec, like native instruments for example, to prevent you loading into old samplers or custom software) will be written with valid spec into the new directory. Old files will be left untouched.
+
 ```shell
-ZODAK v0.1.0 🐉🎹
+🎹  ZODAK
 
 Usage:
-  zodak <sourcedir> <destdir>
+  zodak tag <source> <destdir> [--inst] [--smpl] [--sfz] [--guess-keymap] [--sfzinput=<file>] [--loop-start=<n>] [--loop-end=<n>] [--verbose]
+  zodak print <source>
   zodak (-h | --help)
   zodak --version
 
 Options:
-  -h --help     Show this screen.
-  --version     Show version.
+  -h --help             Show this screen.
+  --version             Show version.
+
+  --overwrite           Prompt to overwrite tags already within the WAV source (default=off)
+  --velocity            Prompt for a velocity range for each sample (default=off)
+  --readonly
+  --verbose             Display more information during parsing
+
+  --guess-keymap        Attempt to guess a keymap based on filenames
+
+  --inst                Add or edit instrument chunk
+  --smpl                Add or edit sampler chunk
+
+  --sfz                 Output an SFZ file with data from the input files
+  --sfzinput=<file>     Use an SFZ as an override for all tags
+
+  --loop-start=<n>           Override loop start for all files processed
+  --loop-end=<n>             Override loop end for all files processed
   ```
