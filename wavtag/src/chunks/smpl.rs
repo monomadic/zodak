@@ -3,7 +3,7 @@ use byteorder::{ByteOrder, LittleEndian, ReadBytesExt};
 use std::io;
 use std::io::{Cursor, Error, ErrorKind};
 
-use {ChunkType, RiffChunk, RiffFile};
+use crate::{ChunkType, RiffChunk, RiffFile};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SamplerChunk {

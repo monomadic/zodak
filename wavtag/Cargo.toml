@@ -1,7 +1,8 @@
 [package]
 name = "wavtag"
 version = "0.1.0"
-authors = ["Rob Saunders <rob@wearebrandnew.com>"]
+authors = ["Monomadic <themonomadic@protonmail.com>"]
+edition = "2021"
 
 [dependencies]
 byteorder = "1.5"

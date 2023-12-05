@@ -4,6 +4,8 @@ use std::fs;
 use std::io;
 use std::io::{Cursor, Error, ErrorKind, Read, Write};
 
+use crate::utils;
+
 pub struct RiffChunk {
     pub header: ChunkType,
     pub data: Vec<u8>,
@@ -79,7 +81,7 @@ impl RiffFile {
     pub fn len(&self) -> usize {
         // (4 for WAVE header chunk, RIFF chunk not included)
         4 + self.chunks.iter().fold(0, |acc, &ref chunk| {
-            acc + ::utils::padded_size(chunk.len() as u32) as usize + 8
+            acc + crate::utils::padded_size(chunk.len() as u32) as usize + 8
         }) // add 8 bytes for each chunks header
     }
 
@@ -136,9 +138,9 @@ impl RiffFile {
                 Ok(length) => length,
             };
 
-            let chunk = Cursor::new(::utils::read_bytes(
+            let chunk = Cursor::new(crate::utils::read_bytes(
                 &mut reader,
-                ::utils::padded_size(chunk_len) as usize,
+                crate::utils::padded_size(chunk_len) as usize,
             )?);
 
             chunks.push(RiffChunk {
@@ -169,12 +171,12 @@ impl RiffFile {
             writer.write(&header.to_tag())?;
             writer.write_u32::<LittleEndian>(chunk.len() as u32)?;
 
-            if ::utils::padded_size(chunk_len) != chunk_len {
+            if utils::padded_size(chunk_len) != chunk_len {
                 // have to copy this chunk to mutably pad it :(
                 let mut padded_chunk_data = chunk.data.clone();
-                ::utils::pad_vec(
+                utils::pad_vec(
                     &mut padded_chunk_data,
-                    (::utils::padded_size(chunk_len) - chunk_len) as usize,
+                    (utils::padded_size(chunk_len) - chunk_len) as usize,
                 );
                 writer.write(&padded_chunk_data)?;
             } else {

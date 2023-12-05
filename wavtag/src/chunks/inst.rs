@@ -1,9 +1,9 @@
-use byteorder::{ ReadBytesExt };
-
 use std::io;
-use std::io::{ Cursor, Error, ErrorKind };
+use std::io::{Cursor, Error, ErrorKind};
 
-use { RiffChunk, ChunkType, RiffFile };
+use byteorder::ReadBytesExt;
+
+use crate::{ChunkType, RiffChunk, RiffFile};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct InstrumentChunk {
@@ -45,7 +45,11 @@ impl Default for InstrumentChunk {
 impl InstrumentChunk {
     pub fn from_chunk(chunk: &RiffChunk) -> Result<Self, io::Error> {
         if chunk.header != ChunkType::Instrument {
-            return Err(Error::new(ErrorKind::Other, "attempted from_chunk() on non-instrument chunk")) };
+            return Err(Error::new(
+                ErrorKind::Other,
+                "attempted from_chunk() on non-instrument chunk",
+            ));
+        };
 
         let mut data = Cursor::new(&chunk.data);
 
@@ -77,7 +81,9 @@ impl InstrumentChunk {
 impl RiffFile {
     pub fn get_instrument_chunk(&self) -> InstrumentChunk {
         match self.find_chunk_by_type(ChunkType::Instrument) {
-            Some(c) => InstrumentChunk::from_chunk(c).expect("chunk to be a valid instrument chunk"),
+            Some(c) => {
+                InstrumentChunk::from_chunk(c).expect("chunk to be a valid instrument chunk")
+            }
             None => InstrumentChunk::default(),
         }
     }
@@ -89,3 +95,4 @@ impl RiffFile {
         });
     }
 }
+

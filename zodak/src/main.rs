@@ -39,5 +39,5 @@ Options:
 ";
 
 fn main() {
-    ::commands::run().expect("success");
+    crate::commands::run().expect("success");
 }

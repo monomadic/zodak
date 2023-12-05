@@ -1,4 +1,3 @@
-use midi::*;
 use wavtag::utils::*;
 use wavtag::{ChunkType, InstrumentChunk, LoopType, RiffFile, SampleLoop, SamplerChunk};
 // use wavtag::{ name_to_note_num, note_num_to_name };
@@ -9,6 +8,9 @@ use std::fs;
 use std::io;
 use std::io::Write;
 use std::path::{Path, PathBuf};
+
+use crate::midi::name_to_note_num;
+use crate::{USAGE, VERSION};
 
 // #[derive(Debug)]
 pub struct DestinationSample {
@@ -24,11 +26,11 @@ pub struct DestinationSample {
 }
 
 pub fn run() -> io::Result<()> {
-    let args = Docopt::new(::USAGE)
-        .and_then(|dopt| dopt.version(Some(::VERSION.to_string())).parse())
+    let args = Docopt::new(USAGE)
+        .and_then(|dopt| dopt.version(Some(VERSION.to_string())).parse())
         .unwrap_or_else(|e| e.exit());
 
-    println!("🎹  ZODAK v{}", ::VERSION);
+    println!("🎹  ZODAK v{}", VERSION);
 
     // let arg_read_only = args.get_str("--read_only");
     let _arg_verbose = args.get_str("--verbose");

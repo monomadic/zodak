@@ -1,7 +1,8 @@
 [package]
 name = "zodak"
 version = "0.1.1"
-authors = ["Rob Saunders <rob@wearebrandnew.com>"]
+authors = ["Monomadic <themonomadic@protonmail.com>"]
+edition = "2021"
 
 [dependencies]
 docopt = "1.1"
