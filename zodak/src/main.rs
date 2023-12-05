@@ -1,13 +1,8 @@
-extern crate docopt;
-extern crate regex;
-extern crate wavtag;
-
 mod commands;
-// mod defaults;
-pub mod midi;
+mod midi;
 
-pub const VERSION: &'static str = env!("CARGO_PKG_VERSION");
-pub const USAGE: &'static str = "
+const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+const USAGE: &'static str = "
 🎹  ZODAK
 
 Usage:
@@ -38,6 +33,6 @@ Options:
 
 ";
 
-fn main() {
-    crate::commands::run().expect("success");
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    Ok(crate::commands::run()?)
 }

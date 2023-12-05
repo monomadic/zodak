@@ -1,8 +1,6 @@
+use docopt::Docopt;
 use wavtag::utils::*;
 use wavtag::{ChunkType, InstrumentChunk, LoopType, RiffFile, SampleLoop, SamplerChunk};
-// use wavtag::{ name_to_note_num, note_num_to_name };
-use docopt;
-use docopt::Docopt;
 
 use std::fs;
 use std::io;
@@ -12,7 +10,6 @@ use std::path::{Path, PathBuf};
 use crate::midi::name_to_note_num;
 use crate::{USAGE, VERSION};
 
-// #[derive(Debug)]
 pub struct DestinationSample {
     pub output_filename: String,
     pub file: RiffFile,
