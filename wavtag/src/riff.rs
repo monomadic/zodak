@@ -1,16 +1,8 @@
-use byteorder::{ ReadBytesExt, WriteBytesExt, LittleEndian };
+use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 
-use std::io;
-use std::io::{ Cursor, Read, Write, Error, ErrorKind };
 use std::fs;
-
-// pub trait RiffChunk {
-//     fn header(&self) -> String;
-//     fn len(&self) -> u32;
-//     fn serialise(&self) -> Vec<u8>;
-//     fn print(&self);
-//     // fn structure(&self) -> Self;
-// }
+use std::io;
+use std::io::{Cursor, Error, ErrorKind, Read, Write};
 
 pub struct RiffChunk {
     pub header: ChunkType,
@@ -19,16 +11,9 @@ pub struct RiffChunk {
 
 impl RiffChunk {
     pub fn len(&self) -> usize {
-        // println!("lenght called [{:?}] {:?}", self.header, self.data.len());
         self.data.len() // todo: investigate if this is actually valid given we have padded bytes.
     }
 }
-
-// impl RiffChunk {
-//     pub fn get_type(&self) -> ChunkType {
-//         ChunkType::Unknown
-//     }
-// }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ChunkType {
@@ -47,7 +32,7 @@ pub enum ChunkType {
 }
 
 impl ChunkType {
-    pub fn to_tag(self) -> [u8;4] {
+    pub fn to_tag(self) -> [u8; 4] {
         match self {
             ChunkType::Format => *b"fmt ",
             ChunkType::Data => *b"data",
@@ -63,12 +48,12 @@ impl ChunkType {
             ChunkType::Unknown(tag) => {
                 let tag = tag.as_bytes();
                 [tag[0], tag[1], tag[2], tag[3]]
-            },
+            }
         }
     }
 }
 
-fn header_to_rifftype(tag: [u8;4]) -> ChunkType {
+fn header_to_rifftype(tag: [u8; 4]) -> ChunkType {
     match &tag {
         b"fmt " | b"FMT " => ChunkType::Format,
         b"data" | b"DATA" => ChunkType::Data,
@@ -93,14 +78,16 @@ pub struct RiffFile {
 impl RiffFile {
     pub fn len(&self) -> usize {
         // (4 for WAVE header chunk, RIFF chunk not included)
-        4 + self.chunks.iter()
-            .fold(0, |acc, &ref chunk| acc + ::utils::padded_size(chunk.len() as u32) as usize + 8) // add 8 bytes for each chunks header
+        4 + self.chunks.iter().fold(0, |acc, &ref chunk| {
+            acc + ::utils::padded_size(chunk.len() as u32) as usize + 8
+        }) // add 8 bytes for each chunks header
     }
-    
+
     pub fn read(mut reader: fs::File, filename: String) -> Result<Self, io::Error> {
         // don't store stuff like the RIFF header chunk as it'll be regenerated on output
-        {   // read RIFF header
-            let mut tag=[0u8;4]; // header tag
+        {
+            // read RIFF header
+            let mut tag = [0u8; 4]; // header tag
             reader.read(&mut tag)?;
 
             if &tag != b"RIFF" {
@@ -110,8 +97,9 @@ impl RiffFile {
 
         let _ = reader.read_u32::<LittleEndian>()?; // get file length (minus RIFF header).
 
-        {   // read WAVE header 
-            let mut tag=[0u8;4]; // header tag
+        {
+            // read WAVE header
+            let mut tag = [0u8; 4]; // header tag
             reader.read(&mut tag)?;
 
             if &tag != b"WAVE" {
@@ -121,9 +109,10 @@ impl RiffFile {
 
         let mut chunks = Vec::new();
 
-        loop { // read chunks
+        loop {
+            // read chunks
             // let tag = reader.read_u32::<LittleEndian>()?;
-            let mut tag=[0u8;4]; // header tag
+            let mut tag = [0u8; 4]; // header tag
 
             let read_attempt = reader.read(&mut tag);
 
@@ -132,33 +121,33 @@ impl RiffFile {
                     println!("malformed RIFF file detected. skipping additional chunks.");
                     break;
                 }
-                Ok(header) => header
+                Ok(header) => header,
             };
 
-            // let chunk_header_size = reader.read(&mut tag)?;
             if chunk_header == 0 {
                 break; // end of file found
             }
-
-            // println!("chunk:{:?}", String::from_utf8_lossy(&tag).into_owned());
 
             let chunk_len = match reader.read_u32::<LittleEndian>() {
                 Err(_) => {
                     println!("malformed RIFF file detected. skipping additional chunks.");
                     break;
                 }
-                Ok(length) => length
+                Ok(length) => length,
             };
 
-            let chunk = Cursor::new(::utils::read_bytes(&mut reader, ::utils::padded_size(chunk_len) as usize)?);
+            let chunk = Cursor::new(::utils::read_bytes(
+                &mut reader,
+                ::utils::padded_size(chunk_len) as usize,
+            )?);
 
-            chunks.push(RiffChunk{ data: chunk.into_inner(), header: header_to_rifftype(tag) });
+            chunks.push(RiffChunk {
+                data: chunk.into_inner(),
+                header: header_to_rifftype(tag),
+            });
         }
 
-        Ok(RiffFile {
-            filename: filename,
-            chunks: chunks
-        })
+        Ok(RiffFile { filename, chunks })
     }
 
     pub fn validate(&self) -> Result<(), Error> {
@@ -169,8 +158,8 @@ impl RiffFile {
         self.validate()?;
 
         // RIFF, WAVE, FMT, DATA chunks
-        writer.write(b"RIFF")?;                                 // RIFF tag
-        writer.write_u32::<LittleEndian>(self.len() as u32)?;   // file size (not including RIFF chunk of 8 bytes)
+        writer.write(b"RIFF")?; // RIFF tag
+        writer.write_u32::<LittleEndian>(self.len() as u32)?; // file size (not including RIFF chunk of 8 bytes)
         writer.write(b"WAVE")?;
 
         for chunk in self.chunks.iter() {
@@ -183,12 +172,15 @@ impl RiffFile {
             if ::utils::padded_size(chunk_len) != chunk_len {
                 // have to copy this chunk to mutably pad it :(
                 let mut padded_chunk_data = chunk.data.clone();
-                ::utils::pad_vec(&mut padded_chunk_data, (::utils::padded_size(chunk_len) - chunk_len) as usize);
+                ::utils::pad_vec(
+                    &mut padded_chunk_data,
+                    (::utils::padded_size(chunk_len) - chunk_len) as usize,
+                );
                 writer.write(&padded_chunk_data)?;
             } else {
                 writer.write(&chunk.data)?;
             }
-        };
+        }
 
         Ok(())
     }

@@ -1,9 +1,9 @@
-extern crate wavtag;
 extern crate docopt;
 extern crate regex;
+extern crate wavtag;
 
 mod commands;
-mod defaults;
+// mod defaults;
 pub mod midi;
 
 pub const VERSION: &'static str = env!("CARGO_PKG_VERSION");
@@ -35,7 +35,7 @@ Options:
 
   --loop-start=<n>           Override loop start for all files processed
   --loop-end=<n>             Override loop end for all files processed
-  
+
 ";
 
 fn main() {

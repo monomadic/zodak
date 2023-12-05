@@ -1,13 +1,12 @@
-use byteorder::{ ReadBytesExt, LittleEndian, ByteOrder };
+use byteorder::{ByteOrder, LittleEndian, ReadBytesExt};
 
 use std::io;
-use std::io::{ Cursor, Read, Error, ErrorKind };
+use std::io::{Cursor, Error, ErrorKind};
 
-use { RiffChunk, ChunkType, RiffFile };
+use {ChunkType, RiffChunk, RiffFile};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SamplerChunk {
-
     /// The manufacturer field specifies the MIDI Manufacturer's Association (MMA) Manufacturer
     /// code for the sampler intended to receive this file's waveform. Each manufacturer of a
     /// MIDI product is assigned a unique ID which identifies the company. If no particular
@@ -57,7 +56,6 @@ pub struct SamplerChunk {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SampleLoop {
-
     /// The Cue Point ID specifies the unique ID that corresponds to one of the defined cue points
     /// in the cue point list. Furthermore, this ID corresponds to any labels defined in the
     /// associated data list chunk which allows text labels to be assigned to the various sample loops.
@@ -70,7 +68,7 @@ pub struct SampleLoop {
     /// 3 - 31 - Reserved for future standard types
     /// 32 - 0xFFFFFFFF - Sampler specific types (defined by manufacturer)
     pub loop_type: LoopType,
-    
+
     pub start: u32,
     pub end: u32,
     pub fraction: u32,
@@ -109,7 +107,11 @@ impl Default for SamplerChunk {
 impl SamplerChunk {
     pub fn from_chunk(chunk: &RiffChunk) -> Result<Self, io::Error> {
         if chunk.header != ChunkType::Sampler {
-            return Err(Error::new(ErrorKind::Other, "attempted from_chunk() on non-sampler chunk")) };
+            return Err(Error::new(
+                ErrorKind::Other,
+                "attempted from_chunk() on non-sampler chunk",
+            ));
+        };
 
         let mut data = Cursor::new(&chunk.data);
 
@@ -125,21 +127,22 @@ impl SamplerChunk {
                 let num_sample_loops = data.read_u32::<LittleEndian>()?;
                 let _ = data.read_u32::<LittleEndian>()?; // sampler_data_chunk_size
 
-                (0..num_sample_loops).map(|_|
-                    SampleLoop {
+                (0..num_sample_loops)
+                    .map(|_| SampleLoop {
                         id: data.read_u32::<LittleEndian>().unwrap(),
                         loop_type: {
                             let lt = data.read_u32::<LittleEndian>().unwrap();
-                            match lt { // TODO: other loop types!
-                                _ => LoopType::Forward
+                            match lt {
+                                // TODO: other loop types!
+                                _ => LoopType::Forward,
                             }
                         },
                         start: data.read_u32::<LittleEndian>().unwrap(),
                         end: data.read_u32::<LittleEndian>().unwrap(),
                         fraction: data.read_u32::<LittleEndian>().unwrap(),
                         play_count: data.read_u32::<LittleEndian>().unwrap(),
-                    }
-                ).collect()
+                    })
+                    .collect()
             },
             sampler_data: Vec::new(),
         })
@@ -149,14 +152,32 @@ impl SamplerChunk {
         let mut chunk = Vec::with_capacity(36 + 24); // space for static fields and sample_loops
         unsafe { chunk.set_len(36 + 24) }; // todo: find a safe way to zero the elements.
 
-        let sample_loop = self.sample_loops.first().expect("sampler chunk to have at least one sample loop");
+        let sample_loop = self
+            .sample_loops
+            .first()
+            .expect("sampler chunk to have at least one sample loop");
         let _ = 0; // sampler_data: greater than 0 if extra sampler data is present.
 
-        LittleEndian::write_u32_into(&vec![
-            self.manufacturer, self.product, self.sample_period, self.midi_unity_note, self.midi_pitch_fraction,
-            self.smpte_format, self.smpte_offset, 1_u32, 0,
-            sample_loop.id, 0_u32, sample_loop.start, sample_loop.end, sample_loop.fraction, sample_loop.play_count,
-        ], &mut chunk);
+        LittleEndian::write_u32_into(
+            &vec![
+                self.manufacturer,
+                self.product,
+                self.sample_period,
+                self.midi_unity_note,
+                self.midi_pitch_fraction,
+                self.smpte_format,
+                self.smpte_offset,
+                1_u32,
+                0,
+                sample_loop.id,
+                0_u32,
+                sample_loop.start,
+                sample_loop.end,
+                sample_loop.fraction,
+                sample_loop.play_count,
+            ],
+            &mut chunk,
+        );
 
         chunk
     }

@@ -1,8 +1,5 @@
-use std::io;
 use std::fs;
-use std::path::{ PathBuf };
-
-use wavtag::RiffFile;
+use std::io;
 
 pub struct InstrumentDefaults {
     regions: Vec<RegionDefaults>,
@@ -19,14 +16,16 @@ pub struct RegionDefaults {
 
 impl InstrumentDefaults {
     pub fn new() -> Self {
-        InstrumentDefaults { regions: Vec::new() }
+        InstrumentDefaults {
+            regions: Vec::new(),
+        }
     }
 
     pub fn parse_sfz(file: fs::File) -> io::Result<Self> {
         println!("Parsing: {:?}", file);
 
         Ok(Self {
-            regions: Vec::new()
+            regions: Vec::new(),
         })
     }
 }
