@@ -4,9 +4,9 @@ version = "0.1.1"
 authors = ["Rob Saunders <rob@wearebrandnew.com>"]
 
 [dependencies]
-docopt = "0.8"
+docopt = "1.1"
 wavtag = { path = "../wavtag" }
-regex = "0.2"
+regex = "1.10"
 
 [[bin]]
 name = "zodak"
